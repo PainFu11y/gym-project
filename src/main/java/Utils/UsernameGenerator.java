@@ -1,0 +1,35 @@
+package Utils;
+
+import org.springframework.stereotype.Component;
+
+import java.util.Set;
+
+
+@Component
+public class UsernameGenerator {
+
+    public String generate(String firstName, String lastName, Set<String> existingUsernames) {
+        String base = firstName + "." + lastName;
+
+        int maxIndex = existingUsernames.stream()
+                .filter(name -> name.equals(base) || name.startsWith(base))
+                .map(name -> {
+                    String suffix = name.substring(base.length());
+                    if (suffix.isEmpty()) return 0;
+                    try {
+                        return Integer.parseInt(suffix);
+                    } catch (NumberFormatException e) {
+                        return 0;
+                    }
+                })
+                .max(Integer::compare)
+                .orElse(0);
+
+        if (maxIndex == 0 && !existingUsernames.contains(base)) {
+            return base;
+        } else {
+            return base + (maxIndex + 1);
+        }
+    }
+}
+

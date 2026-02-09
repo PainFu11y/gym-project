@@ -1,0 +1,35 @@
+plugins {
+    id 'java'
+}
+
+group = 'edu.epam.rd.autotasks'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Spring Core + Context
+    implementation 'org.springframework:spring-core:6.0.18'
+    implementation 'org.springframework:spring-context:6.0.18'
+
+    // Spring Beans
+    implementation 'org.springframework:spring-beans:6.0.18'
+
+    // Logging
+    implementation 'org.slf4j:slf4j-api:2.0.9'
+    implementation 'ch.qos.logback:logback-classic:1.4.11'
+
+
+    // Unit testing
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.10.0'
+
+    // Mockito
+    testImplementation 'org.mockito:mockito-core:5.6.0'
+}
+
+test {
+    useJUnitPlatform()
+}
