@@ -1,42 +1,28 @@
 package service.impl;
 
-import Utils.PasswordGenerator;
-import Utils.UserCreationUtil;
-import Utils.UsernameGenerator;
+import utils.UserCreationUtil;
 import dao.TraineeDao;
 import dao.TrainerDao;
 import model.Trainee;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import service.TraineeService;
 
 import java.util.*;
 
 @Service
-public class TraineeServiceImpl {
+public class TraineeServiceImpl implements TraineeService {
 
-    private UserCreationUtil userCreationUtil;
-    private TrainerDao trainerDao;
-    private TraineeDao traineeDao;
-    private UsernameGenerator usernameGenerator;
-    private PasswordGenerator passwordGenerator;
+    private final TraineeDao traineeDao;
+    private final UserCreationUtil userCreationUtil;
 
     @Autowired
-    public void setTraineeDao(TraineeDao traineeDao) {
+    public TraineeServiceImpl(TraineeDao traineeDao, UserCreationUtil userCreationUtil) {
         this.traineeDao = traineeDao;
-    }
-
-    @Autowired
-    public void setUsernameGenerator(UsernameGenerator usernameGenerator) {
-        this.usernameGenerator = usernameGenerator;
-    }
-
-    @Autowired
-    public void setPasswordGenerator(PasswordGenerator passwordGenerator) {
-        this.passwordGenerator = passwordGenerator;
+        this.userCreationUtil = userCreationUtil;
     }
 
     public Trainee create(Trainee trainee) {
-
         userCreationUtil.assignUsernameAndPassword(trainee);
         return traineeDao.save(trainee);
     }
@@ -53,3 +39,4 @@ public class TraineeServiceImpl {
         return traineeDao.findById(id);
     }
 }
+

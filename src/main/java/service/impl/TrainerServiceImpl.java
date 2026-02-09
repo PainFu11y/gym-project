@@ -1,48 +1,28 @@
 package service.impl;
 
-import Utils.UserCreationUtil;
+import utils.UserCreationUtil;
 import model.Trainer;
-import Utils.PasswordGenerator;
-import Utils.UsernameGenerator;
-import dao.TraineeDao;
 import dao.TrainerDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import service.TrainerService;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
-public class TrainerServiceImpl {
+public class TrainerServiceImpl implements TrainerService {
 
-    private UserCreationUtil userCreationUtil;
-    private TrainerDao trainerDao;
-    private TraineeDao traineeDao;
-    private UsernameGenerator usernameGenerator;
-    private PasswordGenerator passwordGenerator;
+    private final TrainerDao trainerDao;
+    private final UserCreationUtil userCreationUtil;
 
     @Autowired
-    public void setTrainerDao(TrainerDao trainerDao) {
+    public TrainerServiceImpl(TrainerDao trainerDao, UserCreationUtil userCreationUtil) {
         this.trainerDao = trainerDao;
-    }
-
-    @Autowired
-    public void setTraineeDao(TraineeDao traineeDao) {
-        this.traineeDao = traineeDao;
-    }
-
-    @Autowired
-    public void setUsernameGenerator(UsernameGenerator usernameGenerator) {
-        this.usernameGenerator = usernameGenerator;
-    }
-
-    @Autowired
-    public void setPasswordGenerator(PasswordGenerator passwordGenerator) {
-        this.passwordGenerator = passwordGenerator;
+        this.userCreationUtil = userCreationUtil;
     }
 
     public Trainer create(Trainer trainer) {
-
         userCreationUtil.assignUsernameAndPassword(trainer);
         return trainerDao.save(trainer);
     }
@@ -59,4 +39,5 @@ public class TrainerServiceImpl {
         return trainerDao.findAll();
     }
 }
+
 

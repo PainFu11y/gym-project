@@ -1,4 +1,4 @@
-package Utils;
+package utils;
 
 import dao.TraineeDao;
 import dao.TrainerDao;

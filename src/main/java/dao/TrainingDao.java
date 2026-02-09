@@ -2,7 +2,9 @@ package dao;
 
 import model.Training;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
+import storage.InMemoryStorage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,27 +14,44 @@ import java.util.Optional;
 @Repository
 public class TrainingDao {
 
-    private Map<Long, Training> storage;
+    private final InMemoryStorage storage;
 
     @Autowired
-    public void setStorage(Map<Long, Training> trainingStorage) {
-        this.storage = trainingStorage;
+    public TrainingDao(InMemoryStorage storage) {
+        this.storage = storage;
     }
 
+
     public Training save(Training training) {
-        storage.put(training.getId(), training);
+        List<Training> list = storage.getTrainings();
+
+        training.setId(generateId(list));
+
+        list.removeIf(t -> t.getId().equals(training.getId()));
+        list.add(training);
+
         return training;
     }
 
     public Optional<Training> findById(Long id) {
-        return Optional.ofNullable(storage.get(id));
+        List<Training> list = storage.getTrainings();
+        return list.stream()
+                .filter(t -> t.getId().equals(id))
+                .findFirst();
     }
 
     public List<Training> findAll() {
-        return new ArrayList<>(storage.values());
+        return storage.getTrainings();
     }
 
     public void delete(Long id) {
-        storage.remove(id);
+        storage.getTrainings().removeIf(t -> t.getId().equals(id));
+    }
+
+    private Long generateId(List<Training> list) {
+        return list.stream()
+                .map(Training::getId)
+                .max(Long::compare)
+                .orElse(0L) + 1;
     }
 }

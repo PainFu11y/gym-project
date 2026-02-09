@@ -7,12 +7,13 @@ import dao.TrainingTypeDao;
 import model.Training;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import service.TrainingService;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
-public class TrainingService {
+public class TrainingServiceImpl implements TrainingService {
 
     private TrainingDao trainingDao;
     private TraineeDao traineeDao;
