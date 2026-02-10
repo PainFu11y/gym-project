@@ -23,13 +23,13 @@ public class UsernameGenerator {
                     }
                 })
                 .max(Integer::compare)
-                .orElse(0);
+                .orElse(-1);
 
-        if (maxIndex == 0) {
+        if (maxIndex == -1) {
             return base;
         } else {
-            int nextIndex = maxIndex + 1;
-            return base + (nextIndex);
+            int nextUsersIndex = maxIndex + 1;
+            return base + (nextUsersIndex);
         }
     }
 }
