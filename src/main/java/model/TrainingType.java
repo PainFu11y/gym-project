@@ -4,6 +4,7 @@ import model.enums.TrainingTypeName;
 
 public class TrainingType {
     private Long id;
+    private TrainingTypeName name;
 
     public TrainingTypeName getName() {
         return name;
@@ -20,6 +21,4 @@ public class TrainingType {
     public void setId(Long id) {
         this.id = id;
     }
-
-    private TrainingTypeName name;
 }
