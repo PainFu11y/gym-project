@@ -66,13 +66,8 @@ public class UserCreationUtil {
         if (user.getLastName() == null || user.getLastName().isBlank()) {
             throw new IllegalArgumentException("Last name is required");
         }
-
         if (user.getUsername() != null) {
             throw new IllegalStateException("Username is already set");
-        }
-
-        if (user.getPassword() != null) {
-            throw new IllegalStateException("Password is already set");
         }
     }
 }
