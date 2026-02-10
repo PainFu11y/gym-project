@@ -16,6 +16,7 @@ public class InMemoryStorage {
 
     private final Map<EntityName, List<?>> storage = new HashMap<>();
 
+
     public InMemoryStorage() {
         storage.put(EntityName.TRAINER, new ArrayList<Trainer>());
         storage.put(EntityName.TRAINEE, new ArrayList<Trainee>());
@@ -23,11 +24,11 @@ public class InMemoryStorage {
         storage.put(EntityName.TRAINING_TYPE, new ArrayList<TrainingType>());
     }
 
+
     @SuppressWarnings("unchecked")
     public <T> List<T> getList(EntityName key) {
         return (List<T>) storage.get(key);
     }
-
 
     @SuppressWarnings("unchecked")
     public List<Trainee> getTrainees() {

@@ -12,7 +12,7 @@ public class UsernameGenerator {
         String base = firstName + "." + lastName;
 
         int maxIndex = existingUsernames.stream()
-                .filter(name -> name.equals(base) || name.startsWith(base))
+                .filter(name -> name.startsWith(base))
                 .map(name -> {
                     String suffix = name.substring(base.length());
                     if (suffix.isEmpty()) return 0;
@@ -25,10 +25,11 @@ public class UsernameGenerator {
                 .max(Integer::compare)
                 .orElse(0);
 
-        if (maxIndex == 0 && !existingUsernames.contains(base)) {
+        if (maxIndex == 0) {
             return base;
         } else {
-            return base + (maxIndex + 1);
+            int nextIndex = maxIndex + 1;
+            return base + (nextIndex);
         }
     }
 }
