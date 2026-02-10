@@ -3,8 +3,8 @@ package model;
 public abstract class User {
 
     private Long id;
-    private String firstName; // vahan
-    private String lastName; //avetisyan
+    private String firstName;
+    private String lastName;
     private String username;
     private char[] password;
     private boolean active;

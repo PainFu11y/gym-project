@@ -6,6 +6,7 @@ import model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -16,17 +17,17 @@ public class UserCreationUtil {
     private final TrainerDao trainerDao;
     private final TraineeDao traineeDao;
     private final UsernameGenerator usernameGenerator;
-    private final PasswordGenerator passwordGenerator;
+    private final PasswordHasher passwordHasher;
 
     @Autowired
     public UserCreationUtil(TrainerDao trainerDao,
                             TraineeDao traineeDao,
                             UsernameGenerator usernameGenerator,
-                            PasswordGenerator passwordGenerator) {
+                            PasswordHasher passwordHasher) {
         this.trainerDao = trainerDao;
         this.traineeDao = traineeDao;
         this.usernameGenerator = usernameGenerator;
-        this.passwordGenerator = passwordGenerator;
+        this.passwordHasher = passwordHasher;
     }
 
 
@@ -48,7 +49,9 @@ public class UserCreationUtil {
                 )
         );
 
-        user.setPassword(passwordGenerator.generate());
+        char[] rawPassword = user.getPassword();
+        user.setPassword(passwordHasher.hash(rawPassword));
+        Arrays.fill(rawPassword, '\0');
     }
 
     private void validate(User user) {
