@@ -31,6 +31,8 @@ public class UserCreationUtil {
 
 
     public void assignUsernameAndPassword(User user) {
+        validate(user);
+
         Set<String> existingUsernames = Stream.concat(
                         trainerDao.findAll().stream(),
                         traineeDao.findAll().stream()
@@ -47,5 +49,27 @@ public class UserCreationUtil {
         );
 
         user.setPassword(passwordGenerator.generate());
+    }
+
+    private void validate(User user) {
+        if (user == null) {
+            throw new IllegalArgumentException("User must not be null");
+        }
+
+        if (user.getFirstName() == null || user.getFirstName().isBlank()) {
+            throw new IllegalArgumentException("First name is required");
+        }
+
+        if (user.getLastName() == null || user.getLastName().isBlank()) {
+            throw new IllegalArgumentException("Last name is required");
+        }
+
+        if (user.getUsername() != null) {
+            throw new IllegalStateException("Username is already set");
+        }
+
+        if (user.getPassword() != null) {
+            throw new IllegalStateException("Password is already set");
+        }
     }
 }
