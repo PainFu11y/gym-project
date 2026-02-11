@@ -2,7 +2,6 @@ package service.impl;
 
 import utils.UserCreationUtil;
 import dao.TraineeDao;
-import dao.TrainerDao;
 import model.Trainee;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

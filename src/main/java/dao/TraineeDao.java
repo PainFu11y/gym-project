@@ -24,6 +24,13 @@ public class TraineeDao {
         List<Trainee> list = storage.getList(EntityName.TRAINEE);
 
         trainee.setId(generateId(list));
+        list.add(trainee);
+
+        return trainee;
+    }
+
+    public Trainee update(Trainee trainee) {
+        List<Trainee> list = storage.getList(EntityName.TRAINEE);
 
         list.removeIf(t -> t.getId().equals(trainee.getId()));
         list.add(trainee);

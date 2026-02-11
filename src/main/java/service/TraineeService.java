@@ -1,6 +1,5 @@
 package service;
 
-import dao.TraineeDao;
 import model.Trainee;
 
 import java.util.Optional;
