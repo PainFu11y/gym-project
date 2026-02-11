@@ -124,7 +124,6 @@ public class ConsoleApp {
         }
     }
 
-    // ================== HELPERS ==================
 
     private void printMenu() {
         System.out.println("""
@@ -167,9 +166,6 @@ public class ConsoleApp {
 
         System.out.print("Last name: ");
         user.setLastName(scanner.nextLine());
-
-        System.out.print("Password: ");
-        user.setPassword(scanner.nextLine().toCharArray());
     }
 
     private Training readTraining() {

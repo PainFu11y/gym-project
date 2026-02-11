@@ -1,5 +1,6 @@
 package gym.utils;
 
+import gym.utils.PasswordGenerator;
 import gym.dao.TraineeDao;
 import gym.dao.TrainerDao;
 import gym.model.User;
@@ -17,17 +18,17 @@ public class UserCreationUtil {
     private final TrainerDao trainerDao;
     private final TraineeDao traineeDao;
     private final UsernameGenerator usernameGenerator;
-    private final PasswordHasher passwordHasher;
+    private final PasswordGenerator passwordGenerator;
 
     @Autowired
     public UserCreationUtil(TrainerDao trainerDao,
                             TraineeDao traineeDao,
                             UsernameGenerator usernameGenerator,
-                            PasswordHasher passwordHasher) {
+                            PasswordGenerator passwordGenerator) {
         this.trainerDao = trainerDao;
         this.traineeDao = traineeDao;
         this.usernameGenerator = usernameGenerator;
-        this.passwordHasher = passwordHasher;
+        this.passwordGenerator = passwordGenerator;
     }
 
 
@@ -49,9 +50,8 @@ public class UserCreationUtil {
                 )
         );
 
-        char[] rawPassword = user.getPassword();
-        user.setPassword(passwordHasher.hash(rawPassword));
-        Arrays.fill(rawPassword, '\0');
+
+        user.setPassword(passwordGenerator.generate().toCharArray());
     }
 
     private void validate(User user) {
