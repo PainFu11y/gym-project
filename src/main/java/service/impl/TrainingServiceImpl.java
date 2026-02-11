@@ -5,6 +5,8 @@ import dao.TrainerDao;
 import dao.TrainingDao;
 import dao.TrainingTypeDao;
 import model.Training;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import service.TrainingService;
@@ -15,10 +17,14 @@ import java.util.Optional;
 @Service
 public class TrainingServiceImpl implements TrainingService {
 
+    private static final Logger logger =
+            LoggerFactory.getLogger(TrainingServiceImpl.class);
+
     private TrainingDao trainingDao;
     private TraineeDao traineeDao;
     private TrainerDao trainerDao;
     private TrainingTypeDao trainingTypeDao;
+
 
     @Autowired
     public void setTrainingDao(TrainingDao trainingDao) {
@@ -41,6 +47,10 @@ public class TrainingServiceImpl implements TrainingService {
     }
 
     public Training create(Training training) {
+        logger.info("Creating training: traineeId={}, trainerId={}, typeId={}",
+                training.getTraineeId(),
+                training.getTrainerId(),
+                training.getTrainingTypeId());
 
         if (traineeDao.findById(training.getTraineeId()).isEmpty()) {
             throw new IllegalArgumentException("Trainee not found");
@@ -54,15 +64,35 @@ public class TrainingServiceImpl implements TrainingService {
             throw new IllegalArgumentException("Training type not found");
         }
 
-        return trainingDao.save(training);
+        Training saved = trainingDao.save(training);
+
+        logger.info("Training created successfully with id={}", saved.getId());
+
+        return saved;
     }
 
     public Optional<Training> findById(Long id) {
-        return trainingDao.findById(id);
+        logger.debug("Searching training by id={}", id);
+
+        Optional<Training> training = trainingDao.findById(id);
+
+        if (training.isPresent()) {
+            logger.debug("Training found id={}", id);
+        } else {
+            logger.info("Training not found id={}", id);
+        }
+
+        return training;
     }
 
     public List<Training> findAll() {
-        return trainingDao.findAll();
+        logger.debug("Fetching all trainings");
+
+        List<Training> trainings = trainingDao.findAll();
+
+        logger.debug("Total trainings found: {}", trainings.size());
+
+        return trainings;
     }
 }
 

@@ -6,6 +6,8 @@ import model.Trainee;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import service.TraineeService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -14,6 +16,8 @@ public class TraineeServiceImpl implements TraineeService {
 
     private final TraineeDao traineeDao;
     private final UserCreationUtil userCreationUtil;
+    private static final Logger logger =
+            LoggerFactory.getLogger(TraineeServiceImpl.class);
 
     @Autowired
     public TraineeServiceImpl(TraineeDao traineeDao, UserCreationUtil userCreationUtil) {
@@ -22,11 +26,22 @@ public class TraineeServiceImpl implements TraineeService {
     }
 
     public Trainee create(Trainee trainee) {
+        logger.info("Creating trainee: {} {}",
+                trainee.getFirstName(),
+                trainee.getLastName());
+
         userCreationUtil.assignUsernameAndPassword(trainee);
-        return traineeDao.save(trainee);
+
+        Trainee saved = traineeDao.save(trainee);
+
+        logger.info("Trainee created with id={}", saved.getId());
+
+        return saved;
     }
 
     public Trainee update(Trainee trainee) {
+
+        logger.info("Updating trainee with id={}", trainee.getId());
 
         Trainee existing = traineeDao.findById(trainee.getId())
                 .orElseThrow(() ->
@@ -36,16 +51,35 @@ public class TraineeServiceImpl implements TraineeService {
         trainee.setUsername(existing.getUsername());
         trainee.setPassword(existing.getPassword());
 
-        return traineeDao.update(trainee);
+
+        Trainee updated = traineeDao.update(trainee);
+
+        logger.info("Trainee updated successfully id={}", updated.getId());
+
+        return updated;
     }
 
 
     public void delete(Long id) {
+        logger.info("Deleting trainee with id={}", id);
+
         traineeDao.delete(id);
+
+        logger.info("Trainee successfully deleted id={}", id);
     }
 
     public Optional<Trainee> findById(Long id) {
-        return traineeDao.findById(id);
+        logger.debug("Searching trainee by id={}", id);
+
+        Optional<Trainee> trainee = traineeDao.findById(id);
+
+        if (trainee.isPresent()) {
+            logger.debug("Trainee found id={}", id);
+        } else {
+            logger.info("Trainee not found id={}", id);
+        }
+
+        return trainee;
     }
 }
 
