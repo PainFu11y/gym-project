@@ -12,12 +12,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class TrainerDaoTest {
 
-    private InMemoryStorage storage;
     private TrainerDao trainerDao;
 
     @BeforeEach
     void setUp() {
-        storage = new InMemoryStorage();
+        InMemoryStorage storage = new InMemoryStorage();
         trainerDao = new TrainerDao(storage);
     }
 
