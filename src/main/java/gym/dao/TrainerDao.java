@@ -22,7 +22,7 @@ public class TrainerDao {
         List<Trainer> list = storage.getTrainers();
 
         trainer.setId(generateId(list));
-
+        trainer.setSpecialization("Swimming");
         list.add(trainer);
 
         return trainer;

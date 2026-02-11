@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 import gym.storage.EntityName;
 import gym.storage.InMemoryStorage;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,6 +25,8 @@ public class TraineeDao {
         List<Trainee> list = storage.getList(EntityName.TRAINEE);
 
         trainee.setId(generateId(list));
+        trainee.setDateOfBirth(LocalDate.of(2001, 12, 31));
+        trainee.setAddress("Pushkin Street, Kolotushkin House");
         list.add(trainee);
 
         return trainee;

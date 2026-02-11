@@ -1,6 +1,7 @@
 package gym.storage;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,7 +17,9 @@ public class JsonStorageSaver {
             LoggerFactory.getLogger(JsonStorageLoader.class);
 
     private final InMemoryStorage storage;
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper()
+            .registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule())
+            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
     @Value("${data.trainee-file}")
     private String traineeFile;
@@ -32,10 +35,6 @@ public class JsonStorageSaver {
 
     public JsonStorageSaver(InMemoryStorage storage) {
         this.storage = storage;
-    }
-
-    public void printPaths(){
-        System.out.println(traineeFile + trainerFile + trainingFile + trainingTypeFile);
     }
 
     @PreDestroy

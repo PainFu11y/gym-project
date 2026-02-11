@@ -7,7 +7,7 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 
 
 @Configuration
-@ComponentScan(basePackages = {"dao", "service.impl", "utils", "storage", "facade"})
+@ComponentScan(basePackages = {"gym"})
 public class AppConfig {
     @Bean
     public static PropertySourcesPlaceholderConfigurer propertyConfig() {

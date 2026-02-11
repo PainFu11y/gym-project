@@ -6,10 +6,12 @@ import gym.model.Training;
 import gym.service.TraineeService;
 import gym.service.TrainerService;
 import gym.service.TrainingService;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
 
+@Component
 public class TrainingFacade {
 
     private final TraineeService traineeService;

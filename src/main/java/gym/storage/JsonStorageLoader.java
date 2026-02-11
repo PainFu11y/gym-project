@@ -2,6 +2,7 @@ package gym.storage;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import gym.model.Trainee;
 import gym.model.Trainer;
 import gym.model.Training;
@@ -23,7 +24,9 @@ public class JsonStorageLoader implements InitializingBean {
             LoggerFactory.getLogger(JsonStorageLoader.class);
 
     private final InMemoryStorage storage;
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper()
+            .registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule())
+            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
     @Value("${data.trainee-file}")
     private String traineeFile;
