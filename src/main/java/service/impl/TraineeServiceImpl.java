@@ -28,8 +28,18 @@ public class TraineeServiceImpl implements TraineeService {
     }
 
     public Trainee update(Trainee trainee) {
-        return traineeDao.save(trainee);
+
+        Trainee existing = traineeDao.findById(trainee.getId())
+                .orElseThrow(() ->
+                        new IllegalArgumentException("Trainee not found")
+                );
+
+        trainee.setUsername(existing.getUsername());
+        trainee.setPassword(existing.getPassword());
+
+        return traineeDao.update(trainee);
     }
+
 
     public void delete(Long id) {
         traineeDao.delete(id);

@@ -56,14 +56,31 @@ class TraineeServiceImplTest {
 
     @Test
     void shouldUpdateTrainee() {
-        when(traineeDao.save(trainee)).thenReturn(trainee);
+
+        Long id = 1L;
+
+        Trainee existing = new Trainee();
+        existing.setId(id);
+        existing.setUsername("alice.smith");
+        existing.setPassword("encodedPass".toCharArray());
+
+        trainee.setId(id);
+        trainee.setUsername("hacked");
+        trainee.setPassword("newPass".toCharArray()); 
+
+        when(traineeDao.findById(id)).thenReturn(Optional.of(existing));
+        when(traineeDao.update(any(Trainee.class))).thenAnswer(inv -> inv.getArgument(0));
 
         Trainee updated = traineeService.update(trainee);
 
-        assertEquals(trainee, updated);
-        verify(traineeDao).save(trainee);
+        assertEquals("alice.smith", updated.getUsername());
+        assertArrayEquals("encodedPass".toCharArray(), updated.getPassword());
+
+        verify(traineeDao).findById(id);
+        verify(traineeDao).update(trainee);
         verifyNoInteractions(userCreationUtil);
     }
+
 
 
     @Test
