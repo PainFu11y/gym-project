@@ -82,7 +82,6 @@ class TraineeServiceImplTest {
     }
 
 
-
     @Test
     void shouldDeleteTraineeById() {
         Long id = 1L;
