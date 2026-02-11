@@ -1,14 +1,15 @@
 package service.impl;
 
-import dao.TrainerDao;
-import model.Trainer;
+import gym.dao.TrainerDao;
+import gym.model.Trainer;
+import gym.service.impl.TrainerServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import utils.UserCreationUtil;
+import gym.utils.UserCreationUtil;
 
 import java.util.List;
 import java.util.Optional;

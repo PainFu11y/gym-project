@@ -1,10 +1,11 @@
 package dao;
 
-import model.TrainingType;
-import model.enums.TrainingTypeName;
+import gym.dao.TrainingTypeDao;
+import gym.model.TrainingType;
+import gym.model.enums.TrainingTypeName;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import storage.InMemoryStorage;
+import gym.storage.InMemoryStorage;
 
 import java.util.List;
 import java.util.Optional;

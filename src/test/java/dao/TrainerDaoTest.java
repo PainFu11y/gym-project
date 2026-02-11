@@ -1,9 +1,10 @@
 package dao;
 
-import model.Trainer;
+import gym.dao.TrainerDao;
+import gym.model.Trainer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import storage.InMemoryStorage;
+import gym.storage.InMemoryStorage;
 
 import java.util.List;
 import java.util.Optional;

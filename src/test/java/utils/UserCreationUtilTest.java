@@ -1,10 +1,13 @@
 package utils;
 
-import dao.TraineeDao;
-import dao.TrainerDao;
-import model.Trainee;
-import model.Trainer;
-import model.User;
+import gym.dao.TraineeDao;
+import gym.dao.TrainerDao;
+import gym.model.Trainee;
+import gym.model.Trainer;
+import gym.model.User;
+import gym.utils.PasswordHasher;
+import gym.utils.UserCreationUtil;
+import gym.utils.UsernameGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

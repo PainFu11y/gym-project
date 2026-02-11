@@ -1,13 +1,14 @@
 package service.impl;
 
-import dao.TraineeDao;
-import dao.TrainerDao;
-import dao.TrainingDao;
-import dao.TrainingTypeDao;
-import model.Training;
-import model.Trainee;
-import model.Trainer;
-import model.TrainingType;
+import gym.dao.TraineeDao;
+import gym.dao.TrainerDao;
+import gym.dao.TrainingDao;
+import gym.dao.TrainingTypeDao;
+import gym.model.Training;
+import gym.model.Trainee;
+import gym.model.Trainer;
+import gym.model.TrainingType;
+import gym.service.impl.TrainingServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
