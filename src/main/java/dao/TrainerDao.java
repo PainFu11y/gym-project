@@ -2,13 +2,10 @@ package dao;
 
 import model.Trainer;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 import storage.InMemoryStorage;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @Repository
@@ -21,13 +18,25 @@ public class TrainerDao {
         this.storage = storage;
     }
 
-
     public Trainer save(Trainer trainer) {
         List<Trainer> list = storage.getTrainers();
 
         trainer.setId(generateId(list));
 
-        list.removeIf(t -> t.getId().equals(trainer.getId()));
+        list.add(trainer);
+
+        return trainer;
+    }
+
+    public Trainer update(Trainer trainer) {
+        List<Trainer> list = storage.getTrainers();
+
+        Trainer existing = findById(trainer.getId())
+                .orElseThrow(() ->
+                        new IllegalArgumentException("Trainer not found with id: " + trainer.getId())
+                );
+
+        list.remove(existing);
         list.add(trainer);
 
         return trainer;
@@ -44,9 +53,6 @@ public class TrainerDao {
         return storage.getTrainers();
     }
 
-    public void delete(Long id) {
-        storage.getTrainers().removeIf(t -> t.getId().equals(id));
-    }
 
     private Long generateId(List<Trainer> list) {
         return list.stream()

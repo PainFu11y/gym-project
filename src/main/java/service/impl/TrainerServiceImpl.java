@@ -28,7 +28,16 @@ public class TrainerServiceImpl implements TrainerService {
     }
 
     public Trainer update(Trainer trainer) {
-        return trainerDao.save(trainer);
+
+        Trainer existing = trainerDao.findById(trainer.getId())
+                .orElseThrow(() ->
+                        new IllegalArgumentException("Trainer not found")
+                );
+
+        trainer.setUsername(existing.getUsername());
+        trainer.setPassword(existing.getPassword());
+
+        return trainerDao.update(trainer);
     }
 
     public Optional<Trainer> findById(Long id) {

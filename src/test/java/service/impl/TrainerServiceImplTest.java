@@ -54,17 +54,6 @@ class TrainerServiceImplTest {
     }
 
 
-    @Test
-    void shouldUpdateTrainer() {
-        when(trainerDao.save(trainer)).thenReturn(trainer);
-
-        Trainer updated = trainerService.update(trainer);
-
-        assertEquals(trainer, updated);
-        verify(trainerDao).save(trainer);
-        verifyNoInteractions(userCreationUtil);
-    }
-
 
     @Test
     void shouldFindTrainerById() {
@@ -109,4 +98,22 @@ class TrainerServiceImplTest {
         verify(trainerDao).findAll();
         verifyNoInteractions(userCreationUtil);
     }
+
+    @Test
+    void shouldUpdateTrainer() {
+        trainer.setId(1L);
+
+        when(trainerDao.findById(1L)).thenReturn(Optional.of(trainer));
+        when(trainerDao.update(trainer)).thenReturn(trainer);
+
+        Trainer updated = trainerService.update(trainer);
+
+        assertEquals(trainer, updated);
+
+        verify(trainerDao).findById(1L);
+        verify(trainerDao).update(trainer);
+        verifyNoInteractions(userCreationUtil);
+    }
+
+
 }
