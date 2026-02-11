@@ -47,19 +47,17 @@ public class TrainingFacade {
 
 
     public Trainee updateTrainee(Trainee trainee){ return traineeService.update(trainee);}
+    public Trainer updateTrainer(Trainer trainer){return  trainerService.update(trainer);}
 
     public List<Trainer> getAllTrainers() {
         return trainerService.findAll();
     }
-
     public List<Training> getAllTrainings() {
         return trainingService.findAll();
     }
 
     public Optional<Training> getTrainingById(Long id){ return trainingService.findById(id);}
-
     public Optional<Trainer> getTrainerById(Long id){ return trainerService.findById(id);}
-
     public Optional<Trainee> getTraineeById(Long id){ return traineeService.findById(id);}
 
     public void deleteTrainee(Long id){ traineeService.delete(id);}

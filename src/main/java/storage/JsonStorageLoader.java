@@ -3,6 +3,8 @@ package storage;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import model.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -13,6 +15,9 @@ import java.util.List;
 
 @Component
 public class JsonStorageLoader implements InitializingBean {
+
+    private static final Logger logger =
+            LoggerFactory.getLogger(JsonStorageLoader.class);
 
     private final InMemoryStorage storage;
     private final ObjectMapper mapper = new ObjectMapper();
@@ -35,19 +40,36 @@ public class JsonStorageLoader implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() {
-        read(traineeFile, new TypeReference<List<Trainee>>() {}, storage.getTrainees());
-        read(trainerFile, new TypeReference<List<Trainer>>() {}, storage.getTrainers());
-        read(trainingFile, new TypeReference<List<Training>>() {}, storage.getTrainings());
-        read(trainingTypeFile, new TypeReference<List<TrainingType>>() {}, storage.getTrainingTypes());
+        logger.info("Starting JSON storage loading...");
+        read(traineeFile, new TypeReference<List<Trainee>>() {
+                },
+                storage.getTrainees(), "Trainees");
+        read(trainerFile, new TypeReference<List<Trainer>>() {
+                },
+                storage.getTrainers(), "Trainers");
+        read(trainingFile, new TypeReference<List<Training>>() {
+                },
+                storage.getTrainings(), "Trainings");
+        read(trainingTypeFile, new TypeReference<List<TrainingType>>() {
+                },
+                storage.getTrainingTypes(), "TrainingTypes");
+        logger.info("JSON storage loading finished successfully");
     }
 
-    private <T> void read(String file, TypeReference<List<T>> type, List<T> target) {
+    private <T> void read(String file, TypeReference<List<T>> type,
+                          List<T> target, String entityName) {
         try {
             Path path = Path.of(file);
-            if (!Files.exists(path)) return;
+            if (!Files.exists(path)) {
+                logger.warn("{} file not found: {}. Skipping loading.", entityName, file);
+                return;
+            }
 
             List<T> data = mapper.readValue(path.toFile(), type);
             target.addAll(data);
+
+            logger.info("Loaded {} {} from {}",
+                    data.size(), entityName, file);
         } catch (Exception e) {
             throw new RuntimeException("Failed to load " + file, e);
         }
