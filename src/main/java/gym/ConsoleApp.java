@@ -4,6 +4,7 @@ import gym.facade.TrainingFacade;
 import gym.model.Trainee;
 import gym.model.Trainer;
 import gym.model.Training;
+import gym.model.User;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -187,9 +188,13 @@ public class ConsoleApp {
         return training;
     }
 
-    private void printUser(gym.model.User user) {
+    private void printUser(User user) {
         System.out.println(user.getId() + " "
                 + user.getFirstName() + " "
-                + user.getLastName());
+                + user.getLastName() + " "
+                + user.getUsername() + ", is active:" + user.isActive()
+        );
+
+
     }
 }
