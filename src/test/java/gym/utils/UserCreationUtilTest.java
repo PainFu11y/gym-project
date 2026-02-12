@@ -1,13 +1,10 @@
-package utils;
+package gym.utils;
 
 import gym.dao.TraineeDao;
 import gym.dao.TrainerDao;
 import gym.model.Trainee;
 import gym.model.Trainer;
 import gym.model.User;
-import gym.utils.PasswordHasher;
-import gym.utils.UserCreationUtil;
-import gym.utils.UsernameGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,7 +31,7 @@ class UserCreationUtilTest {
     private UsernameGenerator usernameGenerator;
 
     @Mock
-    private PasswordHasher passwordHasher;
+    private PasswordGenerator passwordGenerator;
 
     @InjectMocks
     private UserCreationUtil userCreationUtil;
@@ -50,7 +47,7 @@ class UserCreationUtilTest {
 
 
     @Test
-    void shouldAssignUsernameAndHashedPasswordForTrainer() {
+    void shouldAssignUsernameAndGeneratedPasswordForTrainer() {
         Trainer existingTrainer = mock(Trainer.class);
         when(existingTrainer.getUsername()).thenReturn("existing.trainer");
 
@@ -66,26 +63,17 @@ class UserCreationUtilTest {
                 eq(Set.of("existing.trainer", "existing.trainee"))
         )).thenReturn("john.doe");
 
-        char[] rawPassword = "rawPass".toCharArray();
-        char[] hashedPassword = "hashed".toCharArray();
-
-        user.setPassword(rawPassword);
-
-        when(passwordHasher.hash(rawPassword)).thenReturn(hashedPassword);
+        when(passwordGenerator.generate()).thenReturn("GeneratedPass1");
 
         userCreationUtil.assignUsernameAndPassword(user);
 
         assertEquals("john.doe", user.getUsername());
-        assertArrayEquals(hashedPassword, user.getPassword());
-
-        for (char c : rawPassword) {
-            assertEquals('\0', c);
-        }
+        assertArrayEquals("GeneratedPass1".toCharArray(), user.getPassword());
 
         verify(trainerDao).findAll();
         verify(traineeDao).findAll();
         verify(usernameGenerator).generate(any(), any(), any());
-        verify(passwordHasher).hash(any());
+        verify(passwordGenerator).generate();
     }
 
     @Test
@@ -130,6 +118,6 @@ class UserCreationUtilTest {
                 userCreationUtil.assignUsernameAndPassword(user)
         );
 
-        verifyNoInteractions(trainerDao, traineeDao, usernameGenerator, passwordHasher);
+        verifyNoInteractions(trainerDao, traineeDao, usernameGenerator, passwordGenerator);
     }
 }

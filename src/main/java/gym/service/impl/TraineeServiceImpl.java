@@ -9,6 +9,7 @@ import gym.service.TraineeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.LocalDate;
 import java.util.*;
 
 @Service
@@ -31,7 +32,8 @@ public class TraineeServiceImpl implements TraineeService {
                 trainee.getLastName());
 
         userCreationUtil.assignUsernameAndPassword(trainee);
-
+        trainee.setDateOfBirth(LocalDate.of(2001, 12, 31));
+        trainee.setAddress("Pushkin Street, Kolotushkin House");
         Trainee saved = traineeDao.save(trainee);
 
         logger.info("Trainee created with id={}", saved.getId());
