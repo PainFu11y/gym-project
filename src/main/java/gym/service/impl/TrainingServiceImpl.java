@@ -51,7 +51,7 @@ public class TrainingServiceImpl implements TrainingService {
                 training.getTraineeId(),
                 training.getTrainerId(),
                 training.getTrainingTypeId());
-       try{
+
            if (traineeDao.findById(training.getTraineeId()).isEmpty()) {
                throw new IllegalArgumentException("Trainee not found");
            }
@@ -63,10 +63,6 @@ public class TrainingServiceImpl implements TrainingService {
            if (trainingTypeDao.findById(training.getTrainingTypeId()).isEmpty()) {
                throw new IllegalArgumentException("Training type not found");
            }
-       }catch (Exception e){
-           logger.info("Problem during creating training", e);
-           return training;
-       }
 
 
         Training saved = trainingDao.save(training);

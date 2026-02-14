@@ -6,6 +6,9 @@ import gym.model.Training;
 import gym.service.TraineeService;
 import gym.service.TrainerService;
 import gym.service.TrainingService;
+import gym.service.impl.TraineeServiceImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -17,6 +20,8 @@ public class TrainingFacade {
     private final TraineeService traineeService;
     private final TrainerService trainerService;
     private final TrainingService trainingService;
+    private static final Logger logger =
+            LoggerFactory.getLogger(TraineeServiceImpl.class);
 
     public TrainingFacade(
             TraineeService traineeService,
@@ -29,33 +34,85 @@ public class TrainingFacade {
     }
 
     public Trainee registerTrainee(Trainee trainee) {
-        return traineeService.create(trainee);
+        try {
+            trainee = traineeService.create(trainee);
+
+        } catch (IllegalArgumentException e) {
+            logger.info("Problem during creating trainee", e);
+        } catch (Exception e) {
+            logger.warn("Something went wrong during creating trainee", e);
+        }
+        return trainee;
     }
 
     public Trainer registerTrainer(Trainer trainer) {
-        return trainerService.create(trainer);
+        try {
+            return trainerService.create(trainer);
+        } catch (IllegalArgumentException e) {
+            logger.info("Problem during creating trainee", e);
+        } catch (Exception e) {
+            logger.warn("Something went wrong during creating trainee", e);
+        }
+        return trainer;
     }
 
     public Training scheduleTraining(Training training) {
-        return trainingService.create(training);
+        try {
+            return trainingService.create(training);
+        } catch (IllegalArgumentException e) {
+            logger.info("Problem during creating trainee", e);
+        } catch (Exception e) {
+            logger.warn("Something went wrong during creating trainee", e);
+        }
+        return training;
     }
 
 
-    public Trainee updateTrainee(Trainee trainee){ return traineeService.update(trainee);}
-    public Trainer updateTrainer(Trainer trainer){return  trainerService.update(trainer);}
+    public Trainee updateTrainee(Trainee trainee) {
+        try {
+            return traineeService.update(trainee);
+        } catch (IllegalArgumentException e) {
+            logger.info("Problem during creating trainee", e);
+        } catch (Exception e) {
+            logger.warn("Something went wrong during creating trainee", e);
+        }
+        return trainee;
+    }
+
+    public Trainer updateTrainer(Trainer trainer) {
+        try {
+            return trainerService.update(trainer);
+        } catch (IllegalArgumentException e) {
+            logger.info("Problem during creating trainee", e);
+        } catch (Exception e) {
+            logger.warn("Something went wrong during creating trainee", e);
+        }
+        return trainer;
+    }
 
     public List<Trainer> getAllTrainers() {
         return trainerService.findAll();
     }
+
     public List<Training> getAllTrainings() {
         return trainingService.findAll();
     }
 
-    public Optional<Training> getTrainingById(Long id){ return trainingService.findById(id);}
-    public Optional<Trainer> getTrainerById(Long id){ return trainerService.findById(id);}
-    public Optional<Trainee> getTraineeById(Long id){ return traineeService.findById(id);}
+    public Optional<Training> getTrainingById(Long id) {
+        return trainingService.findById(id);
+    }
 
-    public void deleteTrainee(Long id){ traineeService.delete(id);}
+    public Optional<Trainer> getTrainerById(Long id) {
+        return trainerService.findById(id);
+    }
+
+    public Optional<Trainee> getTraineeById(Long id) {
+        return traineeService.findById(id);
+    }
+
+    public void deleteTrainee(Long id) {
+        traineeService.delete(id);
+    }
 
 
 }

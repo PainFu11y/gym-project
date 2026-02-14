@@ -31,12 +31,9 @@ public class TraineeServiceImpl implements TraineeService {
                 trainee.getFirstName(),
                 trainee.getLastName());
 
-        try{
+
             userCreationUtil.assignUsernameAndPassword(trainee);
-        } catch (Exception ex){
-            logger.info("Problem during saving user", ex);
-            return trainee;
-        }
+
 
         trainee.setDateOfBirth(LocalDate.of(2001, 12, 31));
         trainee.setAddress("Pushkin Street, Kolotushkin House");
