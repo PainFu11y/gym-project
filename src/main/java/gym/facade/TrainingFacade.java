@@ -37,13 +37,6 @@ public class TrainingFacade {
     }
 
     public Training scheduleTraining(Training training) {
-
-        if (traineeService.findById(training.getTraineeId()).isEmpty()) {
-            throw new IllegalArgumentException("Trainee not found");
-        }
-        if (trainerService.findById(training.getTrainerId()).isEmpty()) {
-            throw new IllegalArgumentException("Trainer not found");
-        }
         return trainingService.create(training);
     }
 

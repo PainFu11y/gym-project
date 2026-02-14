@@ -31,7 +31,13 @@ public class TrainerServiceImpl implements TrainerService {
         logger.info("Creating trainer: {} {}",
                 trainer.getFirstName(), trainer.getLastName());
 
-        userCreationUtil.assignUsernameAndPassword(trainer);
+        try{
+            userCreationUtil.assignUsernameAndPassword(trainer);
+        }catch (Exception e){
+            logger.info("Problem during saving trainer ", e);
+            return trainer;
+        }
+
         Trainer saved = trainerDao.save(trainer);
 
         logger.info("Trainer created with id={}", saved.getId());

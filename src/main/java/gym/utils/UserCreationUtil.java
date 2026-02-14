@@ -66,8 +66,21 @@ public class UserCreationUtil {
         if (user.getLastName() == null || user.getLastName().isBlank()) {
             throw new IllegalArgumentException("Last name is required");
         }
+
+        if (!isValidName(user.getFirstName())) {
+            throw new IllegalArgumentException("Invalid first name format");
+        }
+
+        if (!isValidName(user.getLastName())) {
+            throw new IllegalArgumentException("Invalid last name format");
+        }
+
         if (user.getUsername() != null) {
             throw new IllegalStateException("Username is already set");
         }
+    }
+
+    private boolean isValidName(String value) {
+        return value.matches("^[\\p{L}]+(-[\\p{L}]+)?$");
     }
 }

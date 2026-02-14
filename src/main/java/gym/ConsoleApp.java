@@ -33,7 +33,6 @@ public class ConsoleApp {
                 case "1" -> {
                     Trainee trainee = readTrainee();
                     Trainee saved = facade.registerTrainee(trainee);
-                    System.out.println("Created ID: " + saved.getId());
                 }
 
                 case "2" -> {
@@ -68,7 +67,6 @@ public class ConsoleApp {
                 case "5" -> {
                     Trainer trainer = readTrainer();
                     Trainer saved = facade.registerTrainer(trainer);
-                    System.out.println("Created ID: " + saved.getId());
                 }
 
                 case "6" -> {

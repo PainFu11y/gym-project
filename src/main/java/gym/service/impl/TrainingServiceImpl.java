@@ -51,18 +51,23 @@ public class TrainingServiceImpl implements TrainingService {
                 training.getTraineeId(),
                 training.getTrainerId(),
                 training.getTrainingTypeId());
+       try{
+           if (traineeDao.findById(training.getTraineeId()).isEmpty()) {
+               throw new IllegalArgumentException("Trainee not found");
+           }
 
-        if (traineeDao.findById(training.getTraineeId()).isEmpty()) {
-            throw new IllegalArgumentException("Trainee not found");
-        }
+           if (trainerDao.findById(training.getTrainerId()).isEmpty()) {
+               throw new IllegalArgumentException("Trainer not found");
+           }
 
-        if (trainerDao.findById(training.getTrainerId()).isEmpty()) {
-            throw new IllegalArgumentException("Trainer not found");
-        }
+           if (trainingTypeDao.findById(training.getTrainingTypeId()).isEmpty()) {
+               throw new IllegalArgumentException("Training type not found");
+           }
+       }catch (Exception e){
+           logger.info("Problem during creating training", e);
+           return training;
+       }
 
-        if (trainingTypeDao.findById(training.getTrainingTypeId()).isEmpty()) {
-            throw new IllegalArgumentException("Training type not found");
-        }
 
         Training saved = trainingDao.save(training);
 
