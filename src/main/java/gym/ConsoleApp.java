@@ -1,10 +1,12 @@
 package gym;
 
+import gym.dao.TrainingTypeDao;
 import gym.facade.TrainingFacade;
 import gym.model.Trainee;
 import gym.model.Trainer;
 import gym.model.Training;
 import gym.model.User;
+import gym.service.TrainingService;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -16,9 +18,11 @@ public class ConsoleApp {
 
     private final TrainingFacade facade;
     private final Scanner scanner = new Scanner(System.in);
+    private final TrainingTypeDao trainingTypeDao;
 
-    public ConsoleApp(TrainingFacade facade) {
+    public ConsoleApp(TrainingFacade facade, TrainingTypeDao trainingTypeDao) {
         this.facade = facade;
+        this.trainingTypeDao = trainingTypeDao;
     }
 
     public void start() {
@@ -141,6 +145,9 @@ public class ConsoleApp {
                 0  Exit
                 """);
     }
+    private void printTrainingTypes(){
+        System.out.println(trainingTypeDao.findAll());
+    }
 
     private Long readId(String label) {
         System.out.print(label + ": ");
@@ -179,9 +186,12 @@ public class ConsoleApp {
         System.out.print("Training name: ");
         training.setTrainingName(scanner.nextLine());
 
+        printTrainingTypes();
+        System.out.print("Training Type ID: ");
+        training.setTrainingTypeId(scanner.nextLong());
+
         training.setTrainingDate(LocalDateTime.now());
         training.setDurationMinutes(60);
-        training.setTrainingTypeId(1L);
 
         return training;
     }
