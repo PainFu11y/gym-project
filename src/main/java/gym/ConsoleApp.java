@@ -6,7 +6,6 @@ import gym.model.Trainee;
 import gym.model.Trainer;
 import gym.model.Training;
 import gym.model.User;
-import gym.service.TrainingService;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -166,12 +165,15 @@ public class ConsoleApp {
         return trainer;
     }
 
-    private void fillUserData(gym.model.User user) {
+    private void fillUserData(User user) {
         System.out.print("First name: ");
         user.setFirstName(scanner.nextLine());
 
         System.out.print("Last name: ");
         user.setLastName(scanner.nextLine());
+
+        System.out.print("Is Active: ");
+        user.setActive(scanner.nextBoolean());
     }
 
     private Training readTraining() {
