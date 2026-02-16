@@ -6,7 +6,6 @@ import gym.model.Training;
 import gym.service.TraineeService;
 import gym.service.TrainerService;
 import gym.service.TrainingService;
-import gym.service.impl.TraineeServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -21,7 +20,7 @@ public class TrainingFacade {
     private final TrainerService trainerService;
     private final TrainingService trainingService;
     private static final Logger logger =
-            LoggerFactory.getLogger(TraineeServiceImpl.class);
+            LoggerFactory.getLogger(TrainingFacade.class);
 
     public TrainingFacade(
             TraineeService traineeService,
@@ -69,26 +68,24 @@ public class TrainingFacade {
     }
 
 
-    public Trainee updateTrainee(Trainee trainee) {
+    public void updateTrainee(Trainee trainee) {
         try {
-            return traineeService.update(trainee);
+            traineeService.update(trainee);
         } catch (IllegalArgumentException e) {
             logger.info("Problem during creating trainee with id: {}",trainee.getId(), e);
         } catch (Exception e) {
             logger.warn("Something went wrong during creating trainee", e);
         }
-        return trainee;
     }
 
-    public Trainer updateTrainer(Trainer trainer) {
+    public void updateTrainer(Trainer trainer) {
         try {
-            return trainerService.update(trainer);
+            trainerService.update(trainer);
         } catch (IllegalArgumentException e) {
             logger.info("Problem during creating trainer with id: {}",trainer.getId(), e);
         } catch (Exception e) {
             logger.warn("Something went wrong during creating trainee", e);
         }
-        return trainer;
     }
 
     public List<Trainer> getAllTrainers() {

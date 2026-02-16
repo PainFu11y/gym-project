@@ -1,6 +1,5 @@
 package gym.dao;
 
-import gym.dao.TrainerDao;
 import gym.model.Trainer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
