@@ -1,4 +1,4 @@
-package dao;
+package gym.dao;
 
 import gym.dao.TrainingDao;
 import gym.model.Training;

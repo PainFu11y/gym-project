@@ -1,4 +1,4 @@
-package service.impl;
+package gym.impl;
 
 import gym.dao.TrainerDao;
 import gym.model.Trainer;
