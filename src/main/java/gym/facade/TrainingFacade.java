@@ -49,9 +49,9 @@ public class TrainingFacade {
         try {
             return trainerService.create(trainer);
         } catch (IllegalArgumentException e) {
-            logger.info("Problem during creating trainee", e);
+            logger.info("Problem during creating trainer with id: {}",trainer.getId(), e);
         } catch (Exception e) {
-            logger.warn("Something went wrong during creating trainee", e);
+            logger.warn("Something went wrong during creating trainer with id: {}",trainer.getId(), e);
         }
         return trainer;
     }
@@ -60,7 +60,8 @@ public class TrainingFacade {
         try {
             return trainingService.create(training);
         } catch (IllegalArgumentException e) {
-            logger.info("Problem during creating trainee", e);
+            logger.info("Problem during creating training with traineeID: {}, trainerID: {}",
+                    training.getTraineeId(),training.getTrainerId(), e);
         } catch (Exception e) {
             logger.warn("Something went wrong during creating trainee", e);
         }
@@ -72,7 +73,7 @@ public class TrainingFacade {
         try {
             return traineeService.update(trainee);
         } catch (IllegalArgumentException e) {
-            logger.info("Problem during creating trainee", e);
+            logger.info("Problem during creating trainee with id: {}",trainee.getId(), e);
         } catch (Exception e) {
             logger.warn("Something went wrong during creating trainee", e);
         }
@@ -83,7 +84,7 @@ public class TrainingFacade {
         try {
             return trainerService.update(trainer);
         } catch (IllegalArgumentException e) {
-            logger.info("Problem during creating trainee", e);
+            logger.info("Problem during creating trainer with id: {}",trainer.getId(), e);
         } catch (Exception e) {
             logger.warn("Something went wrong during creating trainee", e);
         }
