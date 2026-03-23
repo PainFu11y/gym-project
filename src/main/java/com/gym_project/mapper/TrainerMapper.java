@@ -1,63 +1,67 @@
 package com.gym_project.mapper;
 
-
-import com.gym_project.dto.create.TrainerCreateDto;
+import com.gym_project.dto.common.TraineeSummaryDto;
+import com.gym_project.dto.create.response.TrainerCreateResponseDto;
+import com.gym_project.dto.response.TraineeSummaryResponseDto;
 import com.gym_project.dto.response.TrainerResponseDto;
-import com.gym_project.dto.update.TrainerUpdateDto;
+import com.gym_project.dto.update.response.TrainerUpdateResponseDto;
 import com.gym_project.entity.Trainer;
-import com.gym_project.entity.User;
+import com.gym_project.entity.Trainee;
+import com.gym_project.entity.TrainingType;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-public class TrainerMapper {
+@Mapper(componentModel = "spring")
+public interface TrainerMapper {
 
-    public static Trainer toEntity(TrainerCreateDto dto) {
+    @Mapping(target = "specialization", source = "specialization", qualifiedByName = "mapTrainingType")
+    @Mapping(target = "trainees", source = "trainees", qualifiedByName = "mapTraineeSummary")
+    TrainerResponseDto toResponseDto(Trainer trainer);
 
-        Trainer trainer = new Trainer();
+    List<TrainerResponseDto> toResponseDtoList(List<Trainer> trainers);
 
-        trainer.setFirstName(dto.getFirstName());
-        trainer.setLastName(dto.getLastName());
-        trainer.setSpecialization(dto.getSpecialization());
-        trainer.setActive(true);
+    TrainerCreateResponseDto toCreateResponseDto(Trainer trainer);
 
-        return trainer;
+
+    @Mapping(target = "specialization", source = "specialization", qualifiedByName = "mapTrainingType")
+    @Mapping(target = "trainees", source = "trainees", qualifiedByName = "mapTraineeSummaryResponse")
+    TrainerUpdateResponseDto toUpdateResponseDto(Trainer trainer);
+
+    List<TrainerUpdateResponseDto> toUpdateResponseDtoList(List<Trainer> trainers);
+
+    @Named("mapTrainingType")
+    default String mapTrainingType(TrainingType type) {
+        return type == null ? null : type.getTrainingTypeName();
     }
 
-    public static TrainerResponseDto toDto(Trainer trainer) {
+    @Named("mapTraineeSummary")
+    default Set<TraineeSummaryDto> mapTraineeSummary(Set<Trainee> trainees) {
+        if (trainees == null) return null;
 
-        TrainerResponseDto dto = new TrainerResponseDto();
-
-        dto.setUsername(trainer.getUsername());
-        dto.setFirstName(trainer.getFirstName());
-        dto.setLastName(trainer.getLastName());
-        dto.setActive(trainer.isActive());
-        dto.setSpecialization(trainer.getSpecialization());
-
-        if (trainer.getTrainees() != null) {
-            dto.setTraineeUsernames(
-                    trainer.getTrainees()
-                            .stream()
-                            .map(User::getUsername)
-                            .collect(Collectors.toSet())
-            );
-        }
-
-
-        return dto;
+        return trainees.stream().map(t -> {
+            TraineeSummaryDto dto = new TraineeSummaryDto();
+            dto.setUsername(t.getUsername());
+            dto.setFirstName(t.getFirstName());
+            dto.setLastName(t.getLastName());
+            return dto;
+        }).collect(Collectors.toSet());
     }
 
-    public static void updateEntity(Trainer trainer, TrainerUpdateDto dto) {
+    @Named("mapTraineeSummaryResponse")
+    default List<TraineeSummaryResponseDto> mapTraineeSummaryResponse(Set<Trainee> trainees) {
+        if (trainees == null) return null;
 
-        if (dto.getFirstName() != null) {
-            trainer.setFirstName(dto.getFirstName());
-        }
-
-        if (dto.getLastName() != null) {
-            trainer.setLastName(dto.getLastName());
-        }
-
-        if (dto.getSpecialization() != null) {
-            trainer.setSpecialization(dto.getSpecialization());
-        }
+        return trainees.stream().map(t -> {
+            TraineeSummaryResponseDto dto = new TraineeSummaryResponseDto();
+            dto.setUsername(t.getUsername());
+            dto.setFirstName(t.getFirstName());
+            dto.setLastName(t.getLastName());
+            return dto;
+        }).toList();
     }
 }

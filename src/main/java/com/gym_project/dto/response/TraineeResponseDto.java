@@ -16,10 +16,10 @@ public class TraineeResponseDto {
     private String username;
     private String firstName;
     private String lastName;
-    private boolean active;
 
     private LocalDate dateOfBirth;
     private String address;
+    private boolean active;
 
-    private Set<String> trainerUsernames;
+    private Set<TrainerSummaryDto> trainers;
 }

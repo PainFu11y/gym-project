@@ -1,64 +1,82 @@
 package com.gym_project.mapper;
 
-import com.gym_project.dto.create.TraineeCreateDto;
-import com.gym_project.dto.update.TraineeUpdateDto;
-import com.gym_project.dto.response.TraineeResponseDto;
+import com.gym_project.dto.create.request.TraineeCreateRequestDto;
+import com.gym_project.dto.create.response.TraineeCreateResponseDto;
+import com.gym_project.dto.response.*;
+import com.gym_project.dto.update.request.TraineeUpdateRequestDto;
 import com.gym_project.entity.Trainee;
-import com.gym_project.entity.User;
+import com.gym_project.entity.Trainer;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
+import org.mapstruct.Named;
+import org.mapstruct.factory.Mappers;
 
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-public class TraineeMapper {
+@Mapper(componentModel = "spring")
+public interface TraineeMapper {
+
+    TraineeMapper INSTANCE = Mappers.getMapper(TraineeMapper.class);
+
+    @Mapping(target = "active", source = "active")
+    @Mapping(target = "trainers", source = "trainers", qualifiedByName = "mapTrainerSummary")
+    TraineeResponseDto toResponseDto(Trainee trainee);
+
+    List<TraineeResponseDto> toResponseDtoList(List<Trainee> trainees);
+
+    @Mapping(target = "username", source = "username")
+    @Mapping(target = "password", source = "password")
+    TraineeCreateResponseDto toCreateResponseDto(Trainee trainee);
+
+    @Mapping(target = "username", source = "username")
+    @Mapping(target = "firstName", source = "firstName")
+    @Mapping(target = "lastName", source = "lastName")
+    TraineeSummaryResponseDto toSummaryDto(Trainee trainee);
+
+    List<TraineeSummaryResponseDto> toSummaryDtoList(List<Trainee> trainees);
 
 
-    public static Trainee toEntity(TraineeCreateDto dto) {
-        Trainee trainee = new Trainee();
-
-        trainee.setFirstName(dto.getFirstName());
-        trainee.setLastName(dto.getLastName());
-        trainee.setDateOfBirth(dto.getDateOfBirth());
-        trainee.setAddress(dto.getAddress());
-        trainee.setActive(true);
-
-        return trainee;
+    @Named("mapTrainerUsernames")
+    default Set<String> mapTrainerUsernames(Set<Trainer> trainers) {
+        if (trainers == null) return null;
+        return trainers.stream()
+                .map(Trainer::getUsername)
+                .collect(Collectors.toSet());
     }
 
-    public static TraineeResponseDto toDto(Trainee trainee) {
-        TraineeResponseDto dto = new TraineeResponseDto();
-
-        dto.setUsername(trainee.getUsername());
-        dto.setFirstName(trainee.getFirstName());
-        dto.setLastName(trainee.getLastName());
-        dto.setActive(trainee.isActive());
-        dto.setDateOfBirth(trainee.getDateOfBirth());
-        dto.setAddress(trainee.getAddress());
-
-        if (trainee.getTrainers() != null) {
-            dto.setTrainerUsernames(
-                    trainee.getTrainers()
-                            .stream()
-                            .map(User::getUsername)
-                            .collect(Collectors.toSet())
-            );
-        }
-
-        return dto;
+    @Named("mapTrainerSummary")
+    default Set<TrainerSummaryDto> mapTrainerSummary(Set<Trainer> trainers) {
+        if (trainers == null) return null;
+        return trainers.stream()
+                .map(trainer -> {
+                    TrainerSummaryDto dto = new TrainerSummaryDto();
+                    dto.setUsername(trainer.getUsername());
+                    dto.setFirstName(trainer.getFirstName());
+                    dto.setLastName(trainer.getLastName());
+                    dto.setSpecialization(trainer.getSpecialization().getTrainingTypeName());
+                    return dto;
+                })
+                .collect(Collectors.toSet());
     }
 
-    public static void updateEntity(Trainee trainee, TraineeUpdateDto dto) {
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "username", ignore = true)
+    @Mapping(target = "password", ignore = true)
+    @Mapping(target = "active", ignore = true)
+    @Mapping(target = "trainers", ignore = true)
+    Trainee toEntity(TraineeCreateRequestDto dto);
 
-        if (dto.getFirstName() != null) {
-            trainee.setFirstName(dto.getFirstName());
-        }
-        if (dto.getLastName() != null) {
-            trainee.setLastName(dto.getLastName());
-        }
-        if (dto.getDateOfBirth() != null) {
-            trainee.setDateOfBirth(dto.getDateOfBirth());
-        }
-        if (dto.getAddress() != null) {
-            trainee.setAddress(dto.getAddress());
-        }
-
-    }
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "password", ignore = true)
+    @Mapping(target = "trainers", ignore = true)
+    @Mapping(target = "username", source = "username")
+    @Mapping(target = "firstName", source = "firstName")
+    @Mapping(target = "lastName", source = "lastName")
+    @Mapping(target = "dateOfBirth", source = "dateOfBirth")
+    @Mapping(target = "address", source = "address")
+    @Mapping(target = "active", source = "active")
+    void updateEntity(TraineeUpdateRequestDto dto, @MappingTarget Trainee trainee);
 }

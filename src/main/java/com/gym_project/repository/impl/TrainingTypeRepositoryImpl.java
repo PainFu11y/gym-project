@@ -17,38 +17,16 @@ public class TrainingTypeRepositoryImpl implements TrainingTypeRepository {
     @PersistenceContext
     private EntityManager entityManager;
 
-    @Transactional
-    public void save(TrainingType trainingType) {
-        entityManager.persist(trainingType);
-    }
-
-    @Transactional
-    public TrainingType update(TrainingType trainingType) {
-        return entityManager.merge(trainingType);
-    }
-
-    @Transactional
-    public void delete(TrainingType trainingType) {
-        entityManager.remove(entityManager.contains(trainingType) ? trainingType : entityManager.merge(trainingType));
-    }
-
+    @Override
     @Transactional(readOnly = true)
     public Optional<TrainingType> findById(Long id) {
         return Optional.ofNullable(entityManager.find(TrainingType.class, id));
     }
 
+    @Override
     @Transactional(readOnly = true)
     public List<TrainingType> findAll() {
         return entityManager.createQuery("SELECT t FROM TrainingType t", TrainingType.class)
                 .getResultList();
-    }
-
-    @Transactional(readOnly = true)
-    public Optional<TrainingType> findByName(String trainingTypeName) {
-        return entityManager.createQuery(
-                        "SELECT t FROM TrainingType t WHERE t.trainingTypeName = :name", TrainingType.class)
-                .setParameter("name", trainingTypeName)
-                .getResultStream()
-                .findFirst();
     }
 }

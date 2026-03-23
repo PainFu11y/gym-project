@@ -1,402 +1,404 @@
 package com.gym_project.repository.impl;
 
-import com.gym_project.dto.filter.TrainerTrainingFilterDto;
 import com.gym_project.entity.Trainee;
 import com.gym_project.entity.Trainer;
-import com.gym_project.entity.Training;
+import com.gym_project.entity.TrainingType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
-import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class TrainerRepositoryImplTest {
 
-    private EntityManager entityManager;
-    private TrainerRepositoryImpl repository;
+    @Mock private EntityManager entityManager;
+
+    @InjectMocks
+    private TrainerRepositoryImpl trainerRepository;
+
+    private Trainer trainer;
+    private Trainee trainee;
 
     @BeforeEach
-    void setUp() throws Exception {
-        entityManager = mock(EntityManager.class);
-        repository = new TrainerRepositoryImpl();
+    void setUp() {
+        TrainingType trainingType = new TrainingType();
+        trainingType.setId(1L);
+        trainingType.setTrainingTypeName("Yoga");
 
-        var field = TrainerRepositoryImpl.class.getDeclaredField("entityManager");
-        field.setAccessible(true);
-        field.set(repository, entityManager);
+        trainer = new Trainer();
+        trainer.setId(1L);
+        trainer.setUsername("John.Smith");
+        trainer.setPassword("pass123");
+        trainer.setActive(true);
+        trainer.setSpecialization(trainingType);
+        trainer.setTrainees(new HashSet<>());
+
+        trainee = new Trainee();
+        trainee.setId(1L);
+        trainee.setUsername("Jane.Doe");
+        trainee.setPassword("pass456");
     }
 
+
     @Test
-    void save_shouldCallPersist() {
-        Trainer trainer = new Trainer();
-        repository.save(trainer);
+    void save_shouldPersistTrainer() {
+        trainerRepository.save(trainer);
+
         verify(entityManager).persist(trainer);
     }
 
+
     @Test
-    void update_shouldCallMerge() {
-        Trainer trainer = new Trainer();
+    void update_shouldMergeAndReturnTrainer() {
         when(entityManager.merge(trainer)).thenReturn(trainer);
-        Trainer updated = repository.update(trainer);
-        assertEquals(trainer, updated);
+
+        Trainer result = trainerRepository.update(trainer);
+
+        assertThat(result).isEqualTo(trainer);
         verify(entityManager).merge(trainer);
     }
 
-    @Test
-    void delete_shouldCallRemoveWithMergeWhenNotContained() {
-        Trainer trainer = new Trainer();
-        when(entityManager.contains(trainer)).thenReturn(false);
-        when(entityManager.merge(trainer)).thenReturn(trainer);
-
-        repository.delete(trainer);
-
-        verify(entityManager).merge(trainer);
-        verify(entityManager).remove(trainer);
-    }
 
     @Test
-    void delete_shouldCallRemoveDirectlyWhenContained() {
-        Trainer trainer = new Trainer();
+    void delete_shouldRemoveTrainer_whenManagedByEntityManager() {
         when(entityManager.contains(trainer)).thenReturn(true);
 
-        repository.delete(trainer);
+        trainerRepository.delete(trainer);
 
-        verify(entityManager, never()).merge(trainer);
         verify(entityManager).remove(trainer);
     }
 
     @Test
-    void findById_shouldReturnOptional() {
-        Trainer trainer = new Trainer();
-        when(entityManager.find(Trainer.class, 1L)).thenReturn(trainer);
+    void delete_shouldMergeThenRemove_whenTrainerIsDetached() {
+        Trainer merged = new Trainer();
+        when(entityManager.contains(trainer)).thenReturn(false);
+        when(entityManager.merge(trainer)).thenReturn(merged);
 
-        Optional<Trainer> result = repository.findById(1L);
-        assertTrue(result.isPresent());
-        assertEquals(trainer, result.get());
+        trainerRepository.delete(trainer);
+
+        verify(entityManager).merge(trainer);
+        verify(entityManager).remove(merged);
     }
 
+
     @Test
-    void findAll_shouldReturnList() {
+    void findAll_shouldReturnAllTrainers() {
         TypedQuery<Trainer> query = mock(TypedQuery.class);
         when(entityManager.createQuery("SELECT t FROM Trainer t", Trainer.class)).thenReturn(query);
-        when(query.getResultList()).thenReturn(List.of(new Trainer()));
+        when(query.getResultList()).thenReturn(List.of(trainer));
 
-        List<Trainer> result = repository.findAll();
-        assertEquals(1, result.size());
-        verify(query).getResultList();
+        List<Trainer> result = trainerRepository.findAll();
+
+        assertThat(result).hasSize(1).contains(trainer);
     }
 
     @Test
-    void findBySpecialization_shouldReturnList() {
+    void findAll_shouldReturnEmptyList_whenNoTrainersExist() {
         TypedQuery<Trainer> query = mock(TypedQuery.class);
-        when(entityManager.createQuery("SELECT t FROM Trainer t WHERE t.specialization = :spec", Trainer.class))
-                .thenReturn(query);
-        when(query.setParameter("spec", "Yoga")).thenReturn(query);
-        when(query.getResultList()).thenReturn(List.of(new Trainer()));
+        when(entityManager.createQuery("SELECT t FROM Trainer t", Trainer.class)).thenReturn(query);
+        when(query.getResultList()).thenReturn(List.of());
 
-        List<Trainer> result = repository.findBySpecialization("Yoga");
-        assertEquals(1, result.size());
-        verify(query).getResultList();
+        List<Trainer> result = trainerRepository.findAll();
+
+        assertThat(result).isEmpty();
     }
 
-    @Test
-    void changePassword_shouldCallMerge() {
-        Trainer trainer = new Trainer();
-        trainer.setUsername("john");
 
+    @Test
+    void findByUsernameAndPassword_shouldReturnTrainer_whenCredentialsMatch() {
         TypedQuery<Trainer> query = mock(TypedQuery.class);
-        when(entityManager.createQuery("SELECT t FROM Trainer t WHERE t.username = :username", Trainer.class))
-                .thenReturn(query);
-        when(query.setParameter("username", "john")).thenReturn(query);
+        when(entityManager.createQuery(
+                "SELECT t FROM Trainer t WHERE t.username = :username AND t.password = :password",
+                Trainer.class)).thenReturn(query);
+        when(query.setParameter("username", "John.Smith")).thenReturn(query);
+        when(query.setParameter("password", "pass123")).thenReturn(query);
         when(query.getResultStream()).thenReturn(Stream.of(trainer));
 
-        repository.changePassword("john", "newpass");
+        Optional<Trainer> result = trainerRepository.findByUsernameAndPassword("John.Smith", "pass123");
 
-        assertEquals("newpass", trainer.getPassword());
+        assertThat(result).isPresent();
+        assertThat(result.get().getUsername()).isEqualTo("John.Smith");
+    }
+
+    @Test
+    void findByUsernameAndPassword_shouldReturnEmpty_whenCredentialsDontMatch() {
+        TypedQuery<Trainer> query = mock(TypedQuery.class);
+        when(entityManager.createQuery(
+                "SELECT t FROM Trainer t WHERE t.username = :username AND t.password = :password",
+                Trainer.class)).thenReturn(query);
+        when(query.setParameter("username", "John.Smith")).thenReturn(query);
+        when(query.setParameter("password", "wrong")).thenReturn(query);
+        when(query.getResultStream()).thenReturn(Stream.empty());
+
+        Optional<Trainer> result = trainerRepository.findByUsernameAndPassword("John.Smith", "wrong");
+
+        assertThat(result).isEmpty();
+    }
+
+
+    @Test
+    void findByUsername_shouldReturnTrainer_whenFound() {
+        TypedQuery<Trainer> query = mock(TypedQuery.class);
+        when(entityManager.createQuery(
+                "SELECT t FROM Trainer t WHERE t.username = :username", Trainer.class))
+                .thenReturn(query);
+        when(query.setParameter("username", "John.Smith")).thenReturn(query);
+        when(query.getResultStream()).thenReturn(Stream.of(trainer));
+
+        Optional<Trainer> result = trainerRepository.findByUsername("John.Smith");
+
+        assertThat(result).isPresent();
+        assertThat(result.get().getUsername()).isEqualTo("John.Smith");
+    }
+
+    @Test
+    void findByUsername_shouldReturnEmpty_whenNotFound() {
+        TypedQuery<Trainer> query = mock(TypedQuery.class);
+        when(entityManager.createQuery(
+                "SELECT t FROM Trainer t WHERE t.username = :username", Trainer.class))
+                .thenReturn(query);
+        when(query.setParameter("username", "ghost")).thenReturn(query);
+        when(query.getResultStream()).thenReturn(Stream.empty());
+
+        Optional<Trainer> result = trainerRepository.findByUsername("ghost");
+
+        assertThat(result).isEmpty();
+    }
+
+
+    @Test
+    void changePassword_shouldUpdatePassword_whenTrainerFound() {
+        TypedQuery<Trainer> query = mock(TypedQuery.class);
+        when(entityManager.createQuery(
+                "SELECT t FROM Trainer t WHERE t.username = :username", Trainer.class))
+                .thenReturn(query);
+        when(query.setParameter("username", "John.Smith")).thenReturn(query);
+        when(query.getResultStream()).thenReturn(Stream.of(trainer));
+        when(entityManager.merge(trainer)).thenReturn(trainer);
+
+        trainerRepository.changePassword("John.Smith", "newPass");
+
+        assertThat(trainer.getPassword()).isEqualTo("newPass");
         verify(entityManager).merge(trainer);
     }
 
-
-
-
     @Test
-    void findUsernamesStartingWith_shouldReturnList() {
-        TypedQuery<String> query = mock(TypedQuery.class);
-        when(entityManager.createQuery("SELECT t.username FROM Trainer t WHERE t.username LIKE :pattern", String.class))
-                .thenReturn(query);
-        when(query.setParameter("pattern", "jo%")).thenReturn(query);
-        when(query.getResultList()).thenReturn(List.of("john"));
-
-        List<String> result = repository.findUsernamesStartingWith("jo");
-        assertEquals(1, result.size());
-    }
-
-    @Test
-    void findTrainingsByTrainerAndFilter_shouldReturnList() {
-        TypedQuery<Training> query = mock(TypedQuery.class);
-        when(entityManager.createQuery(anyString(), eq(Training.class))).thenReturn(query);
-        when(query.setParameter(anyString(), any())).thenReturn(query);
-        when(query.getResultList()).thenReturn(List.of(new Training()));
-
-        TrainerTrainingFilterDto filter = new TrainerTrainingFilterDto();
-        filter.setFromDate(LocalDate.now());
-        filter.setToDate(LocalDate.now());
-
-        List<Training> result = repository.findTrainingsByTrainerAndFilter("john", filter);
-        assertEquals(1, result.size());
-    }
-
-    @Test
-    void findUnassignedTrainersByTraineeUsername_shouldReturnEmptyListIfNoTrainers() {
-        TypedQuery<Trainee> traineeQuery = mock(TypedQuery.class);
-        TypedQuery<Trainer> trainerQuery = mock(TypedQuery.class);
-        Trainee trainee = new Trainee();
-        trainee.setUsername("john.doe");
-
-        when(entityManager.createQuery(
-                "SELECT t FROM Trainee t WHERE t.username = :username", Trainee.class))
-                .thenReturn(traineeQuery);
-        when(traineeQuery.setParameter("username", "john.doe")).thenReturn(traineeQuery);
-        when(traineeQuery.getSingleResult()).thenReturn(trainee);
-
-        when(entityManager.createQuery(
-                "SELECT tr FROM Trainer tr WHERE :trainee NOT MEMBER OF tr.trainees", Trainer.class))
-                .thenReturn(trainerQuery);
-        when(trainerQuery.setParameter("trainee", trainee)).thenReturn(trainerQuery);
-        when(trainerQuery.getResultList()).thenReturn(List.of());
-
-        List<Trainer> result = repository.findUnassignedTrainersByTraineeUsername("john.doe");
-
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
-        verify(entityManager).createQuery("SELECT t FROM Trainee t WHERE t.username = :username", Trainee.class);
-        verify(entityManager).createQuery("SELECT tr FROM Trainer tr WHERE :trainee NOT MEMBER OF tr.trainees", Trainer.class);
-    }
-
-    @Test
-    void findUnassignedTrainersByTraineeUsername_shouldReturnListOfTrainers() {
-        TypedQuery<Trainee> traineeQuery = mock(TypedQuery.class);
-        TypedQuery<Trainer> trainerQuery = mock(TypedQuery.class);
-        Trainee trainee = new Trainee();
-        trainee.setUsername("john.doe");
-
-        Trainer t1 = new Trainer();
-        t1.setUsername("trainer1");
-        Trainer t2 = new Trainer();
-        t2.setUsername("trainer2");
-
-        when(entityManager.createQuery(
-                "SELECT t FROM Trainee t WHERE t.username = :username", Trainee.class))
-                .thenReturn(traineeQuery);
-        when(traineeQuery.setParameter("username", "john.doe")).thenReturn(traineeQuery);
-        when(traineeQuery.getSingleResult()).thenReturn(trainee);
-
-        when(entityManager.createQuery(
-                "SELECT tr FROM Trainer tr WHERE :trainee NOT MEMBER OF tr.trainees", Trainer.class))
-                .thenReturn(trainerQuery);
-        when(trainerQuery.setParameter("trainee", trainee)).thenReturn(trainerQuery);
-        when(trainerQuery.getResultList()).thenReturn(List.of(t1, t2));
-
-        List<Trainer> result = repository.findUnassignedTrainersByTraineeUsername("john.doe");
-
-        assertEquals(2, result.size());
-        assertEquals("trainer1", result.get(0).getUsername());
-        assertEquals("trainer2", result.get(1).getUsername());
-    }
-
-    @Test
-    void findByUsernameAndPassword_shouldReturnEmptyOptionalIfNotFound() {
+    void changePassword_shouldThrowIllegalArgumentException_whenTrainerNotFound() {
         TypedQuery<Trainer> query = mock(TypedQuery.class);
-
         when(entityManager.createQuery(
-                "SELECT t FROM Trainer t WHERE t.username = :username AND t.password = :password", Trainer.class))
+                "SELECT t FROM Trainer t WHERE t.username = :username", Trainer.class))
                 .thenReturn(query);
-        when(query.setParameter("username", "john.doe")).thenReturn(query);
-        when(query.setParameter("password", "pass123")).thenReturn(query);
+        when(query.setParameter("username", "ghost")).thenReturn(query);
         when(query.getResultStream()).thenReturn(Stream.empty());
 
-        Optional<Trainer> result = repository.findByUsernameAndPassword("john.doe", "pass123");
+        assertThatThrownBy(() -> trainerRepository.changePassword("ghost", "newPass"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("ghost");
 
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
-        verify(entityManager).createQuery(
-                "SELECT t FROM Trainer t WHERE t.username = :username AND t.password = :password", Trainer.class);
+        verify(entityManager, never()).merge(any());
     }
 
+
     @Test
-    void findByUsernameAndPassword_shouldReturnTrainerIfFound() {
+    void deleteByUsername_shouldRemoveTrainer_whenFound() {
         TypedQuery<Trainer> query = mock(TypedQuery.class);
-        Trainer trainer = new Trainer();
-        trainer.setUsername("john.doe");
-        trainer.setPassword("pass123");
-
         when(entityManager.createQuery(
-                "SELECT t FROM Trainer t WHERE t.username = :username AND t.password = :password", Trainer.class))
+                "SELECT t FROM Trainer t WHERE t.username = :username", Trainer.class))
                 .thenReturn(query);
-        when(query.setParameter("username", "john.doe")).thenReturn(query);
-        when(query.setParameter("password", "pass123")).thenReturn(query);
+        when(query.setParameter("username", "John.Smith")).thenReturn(query);
         when(query.getResultStream()).thenReturn(Stream.of(trainer));
-
-        Optional<Trainer> result = repository.findByUsernameAndPassword("john.doe", "pass123");
-
-        assertTrue(result.isPresent());
-        assertEquals("john.doe", result.get().getUsername());
-        assertEquals("pass123", result.get().getPassword());
-    }
-
-    @Test
-    void findTraineesByTrainerUsername_shouldReturnEmptyListIfNoTrainees() {
-        TypedQuery<Trainee> query = mock(TypedQuery.class);
-
-        when(entityManager.createQuery(
-                "SELECT trn FROM Trainer t JOIN t.trainees trn WHERE t.username = :username", Trainee.class))
-                .thenReturn(query);
-        when(query.setParameter("username", "john.doe")).thenReturn(query);
-        when(query.getResultList()).thenReturn(List.of());
-
-        List<Trainee> result = repository.findTraineesByTrainerUsername("john.doe");
-
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
-        verify(entityManager).createQuery(
-                "SELECT trn FROM Trainer t JOIN t.trainees trn WHERE t.username = :username", Trainee.class);
-    }
-
-    @Test
-    void findTraineesByTrainerUsername_shouldReturnListOfTrainees() {
-        TypedQuery<Trainee> query = mock(TypedQuery.class);
-        Trainee t1 = new Trainee();
-        t1.setUsername("trainee1");
-        Trainee t2 = new Trainee();
-        t2.setUsername("trainee2");
-
-        when(entityManager.createQuery(
-                "SELECT trn FROM Trainer t JOIN t.trainees trn WHERE t.username = :username", Trainee.class))
-                .thenReturn(query);
-        when(query.setParameter("username", "john.doe")).thenReturn(query);
-        when(query.getResultList()).thenReturn(List.of(t1, t2));
-
-        List<Trainee> result = repository.findTraineesByTrainerUsername("john.doe");
-
-        assertNotNull(result);
-        assertEquals(2, result.size());
-        assertEquals("trainee1", result.get(0).getUsername());
-        assertEquals("trainee2", result.get(1).getUsername());
-    }
-    @Test
-    void deleteByUsername_shouldRemoveTrainerIfExists() {
-        Trainer trainer = new Trainer();
-        trainer.setUsername("john.doe");
-
-        TrainerRepositoryImpl spyRepo = spy(repository);
-        doReturn(Optional.of(trainer)).when(spyRepo).findByUsername("john.doe");
-
         when(entityManager.contains(trainer)).thenReturn(true);
 
-        spyRepo.deleteByUsername("john.doe");
+        trainerRepository.deleteByUsername("John.Smith");
 
         verify(entityManager).remove(trainer);
     }
 
     @Test
-    void deleteByUsername_shouldMergeAndRemoveIfNotContained() {
-        Trainer trainer = new Trainer();
-        trainer.setUsername("john.doe");
+    void deleteByUsername_shouldDoNothing_whenTrainerNotFound() {
+        TypedQuery<Trainer> query = mock(TypedQuery.class);
+        when(entityManager.createQuery(
+                "SELECT t FROM Trainer t WHERE t.username = :username", Trainer.class))
+                .thenReturn(query);
+        when(query.setParameter("username", "ghost")).thenReturn(query);
+        when(query.getResultStream()).thenReturn(Stream.empty());
 
-        TrainerRepositoryImpl spyRepo = spy(repository);
-        doReturn(Optional.of(trainer)).when(spyRepo).findByUsername("john.doe");
-
-        when(entityManager.contains(trainer)).thenReturn(false);
-        Trainer mergedTrainer = new Trainer();
-        when(entityManager.merge(trainer)).thenReturn(mergedTrainer);
-
-        spyRepo.deleteByUsername("john.doe");
-
-        verify(entityManager).merge(trainer);
-        verify(entityManager).remove(mergedTrainer);
-    }
-
-    @Test
-    void deleteByUsername_shouldDoNothingIfTrainerNotFound() {
-        TrainerRepositoryImpl spyRepo = spy(repository);
-        doReturn(Optional.empty()).when(spyRepo).findByUsername("john.doe");
-
-        spyRepo.deleteByUsername("john.doe");
+        trainerRepository.deleteByUsername("ghost");
 
         verify(entityManager, never()).remove(any());
     }
 
+
     @Test
-    void findTrainingsByTrainerAndFilter_noFilters() {
-        TrainerTrainingFilterDto filter = new TrainerTrainingFilterDto();
-        String trainerUsername = "trainer1";
+    void findUnassignedActiveTrainers_shouldReturnTrainers() {
+        String jpql = "SELECT tr FROM Trainer tr " +
+                "WHERE tr.isActive = true " +
+                "AND NOT EXISTS (" +
+                "   SELECT t FROM Trainee t JOIN t.trainers trn " +
+                "   WHERE t.username = :username AND trn = tr" +
+                ")";
 
-        TypedQuery<Training> query = mock(TypedQuery.class);
-        when(entityManager.createQuery(
-                "SELECT tr FROM Training tr WHERE tr.trainer.username = :username", Training.class))
-                .thenReturn(query);
-        when(query.setParameter("username", trainerUsername)).thenReturn(query);
-        when(query.getResultList()).thenReturn(List.of(new Training(), new Training()));
+        TypedQuery<Trainer> query = mock(TypedQuery.class);
+        when(entityManager.createQuery(jpql, Trainer.class)).thenReturn(query);
+        when(query.setParameter("username", "Jane.Doe")).thenReturn(query);
+        when(query.getResultList()).thenReturn(List.of(trainer));
 
-        List<Training> result = repository.findTrainingsByTrainerAndFilter(trainerUsername, filter);
+        List<Trainer> result = trainerRepository.findUnassignedActiveTrainersByTraineeUsername("Jane.Doe");
 
-        assertEquals(2, result.size());
-        verify(query).setParameter("username", trainerUsername);
-        verify(query).getResultList();
+        assertThat(result).hasSize(1).contains(trainer);
     }
 
     @Test
-    void findTrainingsByTrainerAndFilter_withDates() {
-        TrainerTrainingFilterDto filter = new TrainerTrainingFilterDto();
-        filter.setFromDate(LocalDate.of(2026, 1, 1));
-        filter.setToDate(LocalDate.of(2026, 1, 31));
-        String trainerUsername = "trainer1";
+    void findUnassignedActiveTrainers_shouldReturnEmptyList_whenAllAssigned() {
+        String jpql = "SELECT tr FROM Trainer tr " +
+                "WHERE tr.isActive = true " +
+                "AND NOT EXISTS (" +
+                "   SELECT t FROM Trainee t JOIN t.trainers trn " +
+                "   WHERE t.username = :username AND trn = tr" +
+                ")";
 
-        TypedQuery<Training> query = mock(TypedQuery.class);
+        TypedQuery<Trainer> query = mock(TypedQuery.class);
+        when(entityManager.createQuery(jpql, Trainer.class)).thenReturn(query);
+        when(query.setParameter("username", "Jane.Doe")).thenReturn(query);
+        when(query.getResultList()).thenReturn(List.of());
+
+        List<Trainer> result = trainerRepository.findUnassignedActiveTrainersByTraineeUsername("Jane.Doe");
+
+        assertThat(result).isEmpty();
+    }
+
+
+    @Test
+    void findUsernamesStartingWith_shouldReturnMatchingUsernames() {
+        TypedQuery<String> query = mock(TypedQuery.class);
         when(entityManager.createQuery(
-                "SELECT tr FROM Training tr WHERE tr.trainer.username = :username AND tr.trainingDate >= :fromDate AND tr.trainingDate <= :toDate",
-                Training.class))
+                "SELECT u.username FROM User u WHERE u.username LIKE :prefix", String.class))
                 .thenReturn(query);
-        when(query.setParameter("username", trainerUsername)).thenReturn(query);
-        when(query.setParameter("fromDate", filter.getFromDate())).thenReturn(query);
-        when(query.setParameter("toDate", filter.getToDate())).thenReturn(query);
-        when(query.getResultList()).thenReturn(List.of(new Training()));
+        when(query.setParameter("prefix", "John.Smith%")).thenReturn(query);
+        when(query.getResultList()).thenReturn(List.of("John.Smith", "John.Smith1"));
 
-        List<Training> result = repository.findTrainingsByTrainerAndFilter(trainerUsername, filter);
+        List<String> result = trainerRepository.findUsernamesStartingWith("John.Smith");
 
-        assertEquals(1, result.size());
-        verify(query).setParameter("username", trainerUsername);
-        verify(query).setParameter("fromDate", filter.getFromDate());
-        verify(query).setParameter("toDate", filter.getToDate());
-        verify(query).getResultList();
+        assertThat(result).containsExactly("John.Smith", "John.Smith1");
     }
 
     @Test
-    void findTrainingsByTrainerAndFilter_withTraineeName() {
-        TrainerTrainingFilterDto filter = new TrainerTrainingFilterDto();
-        filter.setTraineeName("John");
-        String trainerUsername = "trainer1";
+    void findUsernamesStartingWith_shouldReturnEmptyList_whenNoMatch() {
+        TypedQuery<String> query = mock(TypedQuery.class);
+        when(entityManager.createQuery(
+                "SELECT u.username FROM User u WHERE u.username LIKE :prefix", String.class))
+                .thenReturn(query);
+        when(query.setParameter("prefix", "Unknown%")).thenReturn(query);
+        when(query.getResultList()).thenReturn(List.of());
 
-        String expectedQuery = "SELECT tr FROM Training tr WHERE tr.trainer.username = :username " +
-                "AND (tr.trainee.firstName LIKE :traineeName OR tr.trainee.lastName LIKE :traineeName)";
+        List<String> result = trainerRepository.findUsernamesStartingWith("Unknown");
 
-        TypedQuery<Training> query = mock(TypedQuery.class);
-        when(entityManager.createQuery(expectedQuery, Training.class)).thenReturn(query);
-        when(query.setParameter("username", trainerUsername)).thenReturn(query);
-        when(query.setParameter("traineeName", "%John%")).thenReturn(query);
-        when(query.getResultList()).thenReturn(List.of(new Training()));
+        assertThat(result).isEmpty();
+    }
 
-        List<Training> result = repository.findTrainingsByTrainerAndFilter(trainerUsername, filter);
 
-        assertEquals(1, result.size());
-        verify(query).setParameter("username", trainerUsername);
-        verify(query).setParameter("traineeName", "%John%");
-        verify(query).getResultList();
+    @Test
+    void findTraineesByTrainerUsername_shouldReturnTrainees() {
+        TypedQuery<Trainee> query = mock(TypedQuery.class);
+        when(entityManager.createQuery(
+                "SELECT trn FROM Trainer t JOIN t.trainees trn WHERE t.username = :username",
+                Trainee.class)).thenReturn(query);
+        when(query.setParameter("username", "John.Smith")).thenReturn(query);
+        when(query.getResultList()).thenReturn(List.of(trainee));
+
+        List<Trainee> result = trainerRepository.findTraineesByTrainerUsername("John.Smith");
+
+        assertThat(result).hasSize(1).contains(trainee);
+    }
+
+    @Test
+    void findTraineesByTrainerUsername_shouldReturnEmptyList_whenNoTrainees() {
+        TypedQuery<Trainee> query = mock(TypedQuery.class);
+        when(entityManager.createQuery(
+                "SELECT trn FROM Trainer t JOIN t.trainees trn WHERE t.username = :username",
+                Trainee.class)).thenReturn(query);
+        when(query.setParameter("username", "John.Smith")).thenReturn(query);
+        when(query.getResultList()).thenReturn(List.of());
+
+        List<Trainee> result = trainerRepository.findTraineesByTrainerUsername("John.Smith");
+
+        assertThat(result).isEmpty();
+    }
+
+
+    @Test
+    void findTrainersByUsernames_shouldReturnMatchingTrainers() {
+        TypedQuery<Trainer> query = mock(TypedQuery.class);
+        when(entityManager.createQuery(
+                "SELECT tr FROM Trainer tr WHERE tr.username IN :usernames", Trainer.class))
+                .thenReturn(query);
+        when(query.setParameter("usernames", List.of("John.Smith"))).thenReturn(query);
+        when(query.getResultList()).thenReturn(List.of(trainer));
+
+        List<Trainer> result = trainerRepository.findTrainersByUsernames(List.of("John.Smith"));
+
+        assertThat(result).hasSize(1).contains(trainer);
+    }
+
+    @Test
+    void findTrainersByUsernames_shouldReturnEmptyList_whenNoneMatch() {
+        TypedQuery<Trainer> query = mock(TypedQuery.class);
+        when(entityManager.createQuery(
+                "SELECT tr FROM Trainer tr WHERE tr.username IN :usernames", Trainer.class))
+                .thenReturn(query);
+        when(query.setParameter("usernames", List.of("ghost"))).thenReturn(query);
+        when(query.getResultList()).thenReturn(List.of());
+
+        List<Trainer> result = trainerRepository.findTrainersByUsernames(List.of("ghost"));
+
+        assertThat(result).isEmpty();
+    }
+
+
+    @Test
+    void toggleStatus_shouldDeactivateTrainer_whenCurrentlyActive() {
+        trainer.setActive(true);
+
+        TypedQuery<Trainer> query = mock(TypedQuery.class);
+        when(entityManager.createQuery(
+                "SELECT t FROM Trainer t WHERE t.username = :username", Trainer.class))
+                .thenReturn(query);
+        when(query.setParameter("username", "John.Smith")).thenReturn(query);
+        when(query.getSingleResult()).thenReturn(trainer);
+
+        trainerRepository.toggleStatus("John.Smith");
+
+        assertThat(trainer.isActive()).isFalse();
+        verify(entityManager).merge(trainer);
+    }
+
+    @Test
+    void toggleStatus_shouldActivateTrainer_whenCurrentlyInactive() {
+        trainer.setActive(false);
+
+        TypedQuery<Trainer> query = mock(TypedQuery.class);
+        when(entityManager.createQuery(
+                "SELECT t FROM Trainer t WHERE t.username = :username", Trainer.class))
+                .thenReturn(query);
+        when(query.setParameter("username", "John.Smith")).thenReturn(query);
+        when(query.getSingleResult()).thenReturn(trainer);
+
+        trainerRepository.toggleStatus("John.Smith");
+
+        assertThat(trainer.isActive()).isTrue();
+        verify(entityManager).merge(trainer);
     }
 }

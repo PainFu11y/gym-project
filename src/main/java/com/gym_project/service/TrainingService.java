@@ -1,9 +1,7 @@
 package com.gym_project.service;
 
-import com.gym_project.dto.create.TrainingCreateDto;
-import com.gym_project.dto.response.TrainingResponseDto;
+import com.gym_project.dto.create.request.TrainingCreateRequestDto;
 
 public interface TrainingService {
-
-    TrainingResponseDto create(TrainingCreateDto dto);
+      void create(TrainingCreateRequestDto dto);
 }

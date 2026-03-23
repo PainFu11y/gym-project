@@ -1,23 +1,42 @@
 package com.gym_project.mapper;
 
+import com.gym_project.dto.create.response.TrainingCreateResponseDto;
 import com.gym_project.dto.response.TrainingResponseDto;
 import com.gym_project.entity.Training;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.factory.Mappers;
 
-public class TrainingMapper {
+import java.util.List;
 
-    public static TrainingResponseDto toDto(Training training) {
+@Mapper(componentModel = "spring")
+public interface TrainingMapper {
 
-        TrainingResponseDto dto = new TrainingResponseDto();
+    TrainingMapper INSTANCE = Mappers.getMapper(TrainingMapper.class);
 
-        dto.setId(training.getId());
-        dto.setTrainingName(training.getTrainingName());
-        dto.setTrainingDate(training.getTrainingDate());
-        dto.setTrainingDuration(training.getTrainingDuration());
+    @Mapping(target = "traineeUsername", source = "trainee.username")
+    @Mapping(target = "trainerUsername", source = "trainer.username")
+    @Mapping(target = "trainingTypeName", source = "trainingType.trainingTypeName")
+    TrainingCreateResponseDto toCreateResponseDto(Training training);
 
-        dto.setTraineeUsername(training.getTrainee().getUsername());
-        dto.setTrainerUsername(training.getTrainer().getUsername());
-        dto.setTrainingTypeName(training.getTrainingType().getTrainingTypeName());
+    default List<TrainingCreateResponseDto> toCreateResponseDtoList(List<Training> trainings) {
+        if (trainings == null) return null;
+        return trainings.stream()
+                .map(this::toCreateResponseDto)
+                .toList();
+    }
 
-        return dto;
+    @Mapping(target = "trainingName", source = "trainingName")
+    @Mapping(target = "trainingDate", source = "trainingDate")
+    @Mapping(target = "trainingType", source = "trainingType.trainingTypeName")
+    @Mapping(target = "trainingDuration", source = "trainingDuration")
+    @Mapping(target = "trainerName", expression = "java(training.getTrainer().getFirstName() + \" \" + training.getTrainer().getLastName())")
+    TrainingResponseDto toResponseDto(Training training);
+
+    default List<TrainingResponseDto> toResponseDtoList(List<Training> trainings) {
+        if (trainings == null) return null;
+        return trainings.stream()
+                .map(this::toResponseDto)
+                .toList();
     }
 }

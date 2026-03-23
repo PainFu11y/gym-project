@@ -1,33 +1,35 @@
 package com.gym_project.service;
 
-import com.gym_project.dto.create.TraineeCreateDto;
-import com.gym_project.dto.filter.TraineeTrainingFilterDto;
+import com.gym_project.dto.create.request.TraineeCreateRequestDto;
+import com.gym_project.dto.create.response.TraineeCreateResponseDto;
+import com.gym_project.dto.request.LoginRequestDto;
+import com.gym_project.dto.request.TraineeTrainingsFilterRequestDto;
 import com.gym_project.dto.response.TraineeResponseDto;
 import com.gym_project.dto.response.TrainerResponseDto;
+import com.gym_project.dto.response.TrainerSummaryDto;
 import com.gym_project.dto.response.TrainingResponseDto;
-import com.gym_project.dto.update.TraineeUpdateDto;
+import com.gym_project.dto.update.request.TraineeUpdateRequestDto;
+import com.gym_project.dto.update.request.UpdateTraineeTrainerListRequestDto;
 
 import java.util.List;
 
 public interface TraineeService {
 
-    TraineeResponseDto create(TraineeCreateDto dto);
+    TraineeCreateResponseDto create(TraineeCreateRequestDto dto);
 
     TraineeResponseDto getByUsername(String username);
 
-    List<TraineeResponseDto> getAll();
-
-    TraineeResponseDto update(String username, TraineeUpdateDto dto);
+    TraineeResponseDto update(TraineeUpdateRequestDto dto);
 
     void deleteByUsername(String username);
 
-    TraineeResponseDto toggleActiveStatus(String username);
+    void toggleStatus(String username);
 
-    void changePassword(String username, String newPassword);
+    List<TrainingResponseDto> getTraineeTrainings(TraineeTrainingsFilterRequestDto filter);
 
-    List<TrainingResponseDto> getTrainings(String traineeUsername, TraineeTrainingFilterDto filter);
-
-    TraineeResponseDto validateCredentials(String username, String password);
+    TraineeResponseDto validateCredentials(LoginRequestDto dto);
 
     List<TrainerResponseDto> getTrainers(String username);
+
+    List<TrainerSummaryDto> updateTrainerList(UpdateTraineeTrainerListRequestDto dto);
 }

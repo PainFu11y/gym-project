@@ -1,108 +1,70 @@
 package com.gym_project.service.impl;
 
-import com.gym_project.dto.create.TrainingCreateDto;
-import com.gym_project.dto.response.TrainingResponseDto;
-import com.gym_project.entity.*;
-import com.gym_project.mapper.TrainingMapper;
-import com.gym_project.repository.*;
+import com.gym_project.dto.create.request.TrainingCreateRequestDto;
+import com.gym_project.entity.Trainee;
+import com.gym_project.entity.Trainer;
+import com.gym_project.entity.Training;
+import com.gym_project.exception.EntityNotFoundException;
+import com.gym_project.repository.TraineeRepository;
+import com.gym_project.repository.TrainerRepository;
+import com.gym_project.repository.TrainingRepository;
 import com.gym_project.service.TrainingService;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import com.gym_project.security.PreAuthorize;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+
+import javax.transaction.Transactional;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
-@Transactional
 public class TrainingServiceImpl implements TrainingService {
 
     private final TrainingRepository trainingRepository;
-    private final TraineeRepository traineeRepository;
     private final TrainerRepository trainerRepository;
-    private final TrainingTypeRepository trainingTypeRepository;
+    private final TraineeRepository traineeRepository;
+
+    public TrainingServiceImpl(
+            TrainingRepository trainingRepository,
+            TrainerRepository trainerRepository,
+            TraineeRepository traineeRepository
+    ) {
+        this.trainingRepository = trainingRepository;
+        this.trainerRepository = trainerRepository;
+        this.traineeRepository = traineeRepository;
+    }
 
     @Override
-    public TrainingResponseDto create(TrainingCreateDto dto) {
-
-        log.info("Creating training: trainee={}, trainer={}, typeId={}",
-                dto.getTraineeUsername(),
-                dto.getTrainerUsername(),
-                dto.getTrainingTypeId());
-
-        validate(dto);
+    @Transactional
+    @PreAuthorize("hasRole('TRAINER') and #dto.trainerUsername == authentication.name")
+    public void create(TrainingCreateRequestDto dto) {
+        log.debug("Creating training '{}' for trainee='{}' by trainer='{}'",
+                dto.getTrainingName(), dto.getTraineeUsername(), dto.getTrainerUsername());
 
         Trainee trainee = traineeRepository.findByUsername(dto.getTraineeUsername())
                 .orElseThrow(() -> {
-                    log.error("Trainee not found: {}", dto.getTraineeUsername());
-                    return new RuntimeException("Trainee not found");
+                    log.warn("Trainee not found: username='{}'", dto.getTraineeUsername());
+                    return new EntityNotFoundException("Trainee not found: " + dto.getTraineeUsername());
                 });
 
         Trainer trainer = trainerRepository.findByUsername(dto.getTrainerUsername())
                 .orElseThrow(() -> {
-                    log.error("Trainer not found: {}", dto.getTrainerUsername());
-                    return new RuntimeException("Trainer not found");
-                });
-
-        TrainingType trainingType = trainingTypeRepository.findById(dto.getTrainingTypeId())
-                .orElseThrow(() -> {
-                    log.error("Training type not found: {}", dto.getTrainingTypeId());
-                    return new RuntimeException("Training type not found");
+                    log.warn("Trainer not found: username='{}'", dto.getTrainerUsername());
+                    return new EntityNotFoundException("Trainer not found: " + dto.getTrainerUsername());
                 });
 
         Training training = new Training();
-        training.setTrainee(trainee);
-        training.setTrainer(trainer);
-        training.setTrainingType(trainingType);
         training.setTrainingName(dto.getTrainingName());
         training.setTrainingDate(dto.getTrainingDate());
         training.setTrainingDuration(dto.getTrainingDuration());
-
-        if (!trainer.getTrainees().contains(trainee)) {
-            trainer.getTrainees().add(trainee);
-            trainee.getTrainers().add(trainer);
-            log.debug("Linked trainer {} with trainee {}",
-                    trainer.getUsername(), trainee.getUsername());
-        }
+        training.setTrainer(trainer);
+        training.setTrainee(trainee);
+        training.setTrainingType(trainer.getSpecialization());
 
         trainingRepository.save(training);
+        trainer.getTrainees().add(trainee);
 
-        log.info("Training successfully created: id={}, name={}",
-                training.getId(), training.getTrainingName());
-
-        return TrainingMapper.toDto(training);
-    }
-
-    private void validate(TrainingCreateDto dto) {
-
-        if (dto.getTraineeUsername() == null || dto.getTraineeUsername().isBlank()) {
-            log.error("Validation failed: trainee username is blank");
-            throw new IllegalArgumentException("Trainee username is required");
-        }
-
-        if (dto.getTrainerUsername() == null || dto.getTrainerUsername().isBlank()) {
-            log.error("Validation failed: trainer username is blank");
-            throw new IllegalArgumentException("Trainer username is required");
-        }
-
-        if (dto.getTrainingTypeId() == null) {
-            log.error("Validation failed: training type id is null");
-            throw new IllegalArgumentException("Training type is required");
-        }
-
-        if (dto.getTrainingName() == null || dto.getTrainingName().isBlank()) {
-            log.error("Validation failed: training name is blank");
-            throw new IllegalArgumentException("Training name is required");
-        }
-
-        if (dto.getTrainingDate() == null) {
-            log.error("Validation failed: training date is null");
-            throw new IllegalArgumentException("Training date is required");
-        }
-
-        if (dto.getTrainingDuration() == null || dto.getTrainingDuration() <= 0) {
-            log.error("Validation failed: training duration invalid");
-            throw new IllegalArgumentException("Training duration must be positive");
-        }
+        log.info("Training created: name='{}', trainee='{}', trainer='{}', date={}, duration={}",
+                dto.getTrainingName(), dto.getTraineeUsername(), dto.getTrainerUsername(),
+                dto.getTrainingDate(), dto.getTrainingDuration());
     }
 }

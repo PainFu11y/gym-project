@@ -1,36 +1,19 @@
 package com.gym_project.security;
 
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
+@Slf4j
 @Service
 public class AuthService {
 
     public void authenticate(String username, Role role) {
-
-        List<GrantedAuthority> authorities =
-                List.of(new SimpleGrantedAuthority(role.asAuthority()));
-
-        Authentication authentication =
-                new UsernamePasswordAuthenticationToken(
-                        username,
-                        null,
-                        authorities
-                );
-
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-
-        System.out.println("Authenticated as " + role);
+        AuthContext.set(username, role);
+        log.info("Authenticated: username='{}', role={}", username, role);
     }
 
     public void logout() {
-        SecurityContextHolder.clearContext();
-        System.out.println("Logged out");
+        log.info("Logged out: username='{}'", AuthContext.getUsername());
+        AuthContext.clear();
     }
 }
