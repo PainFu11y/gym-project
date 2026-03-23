@@ -4,11 +4,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 
 @Slf4j
@@ -70,11 +70,8 @@ public class SessionAuthFilter extends OncePerRequestFilter {
         if ("POST".equalsIgnoreCase(method) && path.equals("/api/trainees")) return true;
         if ("POST".equalsIgnoreCase(method) && path.equals("/api/trainers"))  return true;
 
-        if (path.equals("/swagger-ui.html"))          return true;
-        if (path.startsWith("/swagger-resources"))    return true;
-        if (path.startsWith("/webjars/"))             return true;
-        if (path.startsWith("/v2/api-docs"))          return true;
-        if (path.startsWith("/configuration/"))       return true;
+        if (path.startsWith("/swagger-ui"))           return true;
+        if (path.startsWith("/v3/api-docs"))          return true;
 
         if (path.equals("/favicon.ico"))              return true;
 
