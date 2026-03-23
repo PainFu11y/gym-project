@@ -3,10 +3,7 @@ package com.gym_project.config;
 import javax.persistence.EntityManagerFactory;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.*;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
@@ -20,31 +17,32 @@ import java.util.Properties;
 @Configuration
 @EnableTransactionManagement
 @PropertySource("classpath:/application.properties")
-@ComponentScan("com.gym_project")
+@ComponentScan(basePackages = "com.gym_project"
+)
 public class ApplicationConfig {
 
-    @Value("${db.driver}")
+    @Value("${spring.datasource.driver-class-name}")
     private String databaseDriver;
 
-    @Value("${db.url}")
+    @Value("${spring.datasource.url}")
     private String databaseUrl;
 
-    @Value("${db.username}")
+    @Value("${spring.datasource.username}")
     private String databaseUsername;
 
-    @Value("${db.password}")
+    @Value("${spring.datasource.password}")
     private String databasePassword;
 
-    @Value("${hibernate.dialect}")
+    @Value("${spring.jpa.properties.hibernate.dialect}")
     private String hibernateDialect;
 
-    @Value("${hibernate.show_sql}")
+    @Value("${spring.jpa.show-sql}")
     private String hibernateShowSql;
 
-    @Value("${hibernate.hbm2ddl.auto}")
+    @Value("${spring.jpa.hibernate.ddl-auto}")
     private String hibernateHbm2ddl;
 
-    @Value("${hibernate.format_sql}")
+    @Value("${spring.jpa.properties.hibernate.format_sql}")
     private String hibernateFormatSql;
 
 

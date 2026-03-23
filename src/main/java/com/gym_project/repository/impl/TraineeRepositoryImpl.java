@@ -1,16 +1,14 @@
 package com.gym_project.repository.impl;
 
-import com.gym_project.dto.filter.TraineeTrainingFilterDto;
 import com.gym_project.entity.Trainee;
 import com.gym_project.entity.Trainer;
-import com.gym_project.entity.Training;
+import com.gym_project.exception.EntityNotFoundException;
 import com.gym_project.repository.TraineeRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -72,7 +70,7 @@ public class TraineeRepositoryImpl implements TraineeRepository {
     @Transactional(readOnly = true)
     public List<String> findUsernamesStartingWith(String prefix) {
         return entityManager.createQuery(
-                        "SELECT t.username FROM Trainee t WHERE t.username LIKE :prefix",
+                        "SELECT u.username FROM User u WHERE u.username LIKE :prefix",
                         String.class)
                 .setParameter("prefix", prefix + "%")
                 .getResultList();
@@ -90,33 +88,20 @@ public class TraineeRepositoryImpl implements TraineeRepository {
         }
     }
 
-    @Transactional(readOnly = true)
     @Override
-    public List<Training> findTrainingsByTraineeAndFilter(String traineeUsername, TraineeTrainingFilterDto filter) {
-        StringBuilder sb = new StringBuilder("SELECT tr FROM Training tr WHERE tr.trainee.username = :username");
+    @Transactional
+    public void toggleStatus(String username) {
 
-        if (filter.getFromDate() != null) sb.append(" AND tr.trainingDate >= :fromDate");
-        if (filter.getToDate() != null) sb.append(" AND tr.trainingDate <= :toDate");
-        if (filter.getTrainerName() != null && !filter.getTrainerName().isBlank()) {
-            sb.append(" AND (tr.trainer.firstName LIKE :trainerName OR tr.trainer.lastName LIKE :trainerName)");
-        }
-        if (filter.getTrainingTypeName() != null && !filter.getTrainingTypeName().isBlank()) {
-            sb.append(" AND tr.trainingType.trainingTypeName = :trainingTypeName");
-        }
+        Trainee trainee = entityManager.createQuery(
+                        "SELECT t FROM Trainee t WHERE t.username = :username", Trainee.class)
+                .setParameter("username", username)
+                .getResultStream()
+                .findFirst()
+                .orElseThrow(() -> new EntityNotFoundException("Trainee not found: " + username));
 
-        var query = entityManager.createQuery(sb.toString(), Training.class)
-                .setParameter("username", traineeUsername);
+        trainee.setActive(!trainee.isActive());
 
-        if (filter.getFromDate() != null) query.setParameter("fromDate", filter.getFromDate());
-        if (filter.getToDate() != null) query.setParameter("toDate", filter.getToDate());
-        if (filter.getTrainerName() != null && !filter.getTrainerName().isBlank()) {
-            query.setParameter("trainerName", "%" + filter.getTrainerName() + "%");
-        }
-        if (filter.getTrainingTypeName() != null && !filter.getTrainingTypeName().isBlank()) {
-            query.setParameter("trainingTypeName", filter.getTrainingTypeName());
-        }
-
-        return query.getResultList();
+        entityManager.merge(trainee);
     }
 
     @Transactional(readOnly = true)

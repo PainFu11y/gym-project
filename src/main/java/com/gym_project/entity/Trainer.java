@@ -1,11 +1,11 @@
 package com.gym_project.entity;
 
-import javax.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import javax.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -17,8 +17,9 @@ import java.util.Set;
 @AllArgsConstructor
 public class Trainer extends User{
 
-    @Column(nullable = false)
-    private String specialization;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "training_type_id")
+    private TrainingType specialization;
 
     @OneToMany(mappedBy = "trainer",
             cascade = CascadeType.ALL,

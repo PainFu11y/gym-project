@@ -1,38 +1,27 @@
 package com.gym_project.service;
 
-import com.gym_project.dto.create.TrainerCreateDto;
+import com.gym_project.dto.create.request.TrainerCreateRequestDto;
+import com.gym_project.dto.create.response.TrainerCreateResponseDto;
 import com.gym_project.dto.filter.TrainerTrainingFilterDto;
-import com.gym_project.dto.response.TraineeResponseDto;
 import com.gym_project.dto.response.TrainerResponseDto;
+import com.gym_project.dto.response.TrainerSummaryDto;
 import com.gym_project.dto.response.TrainingResponseDto;
-import com.gym_project.dto.update.TraineeTrainersUpdateDto;
-import com.gym_project.dto.update.TrainerUpdateDto;
+import com.gym_project.dto.update.request.TrainerUpdateRequestDto;
+import com.gym_project.dto.update.response.TrainerUpdateResponseDto;
 
 import java.util.List;
 
 public interface TrainerService {
 
-    TrainerResponseDto create(TrainerCreateDto dto);
+    TrainerCreateResponseDto create(TrainerCreateRequestDto dto);
 
     TrainerResponseDto getByUsername(String username);
 
-    List<TrainerResponseDto> getAll();
+    TrainerUpdateResponseDto update(TrainerUpdateRequestDto dto);
 
-    TrainerResponseDto update(String username, TrainerUpdateDto dto);
+    List<TrainerSummaryDto> getUnassignedActiveTrainersByTraineeUsername(String username);
 
-    void deleteByUsername(String username);
+    List<TrainingResponseDto> getTrainerTrainingsByFilter(TrainerTrainingFilterDto dto);
 
-    TrainerResponseDto toggleActiveStatus(String username);
-
-    void changePassword(String username, String newPassword);
-
-    List<TrainingResponseDto> getTrainings(String trainerUsername, TrainerTrainingFilterDto filter);
-
-    List<TrainerResponseDto> getUnassignedTrainersByTraineeUsername(String traineeUsername);
-
-    List<TrainerResponseDto> updateTraineeTrainers(String traineeUsername, TraineeTrainersUpdateDto dto);
-
-    TrainerResponseDto validateCredentials(String username, String password);
-
-    List<TraineeResponseDto> getTrainees(String username);
+    void toggleStatus(String username);
 }

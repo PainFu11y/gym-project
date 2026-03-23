@@ -1,13 +1,16 @@
-package com.gym_project.dto.update;
+package com.gym_project.dto.create.response;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.time.LocalDate;
 
 @Getter
 @Setter
-public class TrainingUpdateDto {
+@ToString
+public class TrainingCreateResponseDto {
+    private Long id;
 
     private String traineeUsername;
     private String trainerUsername;

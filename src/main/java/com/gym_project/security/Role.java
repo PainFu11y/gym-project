@@ -1,7 +1,6 @@
 package com.gym_project.security;
 
 public enum Role {
-
     TRAINER,
     TRAINEE;
 
