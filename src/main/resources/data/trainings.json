@@ -14,4 +14,12 @@
   "trainingName" : "px",
   "trainingDate" : "2026-02-12T00:38:22.1391427",
   "durationMinutes" : 60
+}, {
+  "id" : 3,
+  "traineeId" : 12,
+  "trainerId" : 3,
+  "trainingTypeId" : 1,
+  "trainingName" : "swimming course",
+  "trainingDate" : "2026-02-17T16:14:22.1554722",
+  "durationMinutes" : 60
 } ]

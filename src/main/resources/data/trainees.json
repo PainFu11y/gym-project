@@ -43,4 +43,49 @@
   "active" : false,
   "dateOfBirth" : "2001-12-31",
   "address" : "Pushkin Street, Kolotushkin House"
+}, {
+  "id" : 7,
+  "firstName" : "Александр",
+  "lastName" : "Дюма",
+  "username" : "Александр.Дюма",
+  "password" : "InSELkqNvr",
+  "active" : false,
+  "dateOfBirth" : "2001-12-31",
+  "address" : "Pushkin Street, Kolotushkin House"
+}, {
+  "id" : 8,
+  "firstName" : "John",
+  "lastName" : "Doe",
+  "username" : "John.Doe",
+  "password" : "B7uqkDd3AF",
+  "active" : true,
+  "dateOfBirth" : "2001-12-31",
+  "address" : "Pushkin Street, Kolotushkin House"
+}, {
+  "id" : 9,
+  "firstName" : "John",
+  "lastName" : "DDoe",
+  "username" : "John.DDoe",
+  "password" : "kHFGj3Ca1u",
+  "active" : true,
+  "dateOfBirth" : "2001-12-31",
+  "address" : "Pushkin Street, Kolotushkin House"
+}, {
+  "id" : 11,
+  "firstName" : "John",
+  "lastName" : "Doe",
+  "username" : "John.Doe2",
+  "password" : "i0IdNy9gGI",
+  "active" : true,
+  "dateOfBirth" : "2001-12-31",
+  "address" : "Pushkin Street, Kolotushkin House"
+}, {
+  "id" : 12,
+  "firstName" : "John",
+  "lastName" : "Doe",
+  "username" : "John.Doe3",
+  "password" : "RuyzRUVJiG",
+  "active" : false,
+  "dateOfBirth" : "2001-12-31",
+  "address" : "Pushkin Street, Kolotushkin House"
 } ]
