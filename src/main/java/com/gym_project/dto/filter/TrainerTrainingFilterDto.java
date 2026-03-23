@@ -1,10 +1,10 @@
 package com.gym_project.dto.filter;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.PastOrPresent;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.PastOrPresent;
 import java.time.LocalDate;
 
 @Getter
