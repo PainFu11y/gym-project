@@ -4,18 +4,18 @@ import com.gym_project.constants.RoutConstants;
 import com.gym_project.dto.create.request.TrainingCreateRequestDto;
 import com.gym_project.service.TrainingService;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(RoutConstants.BASE_URL + RoutConstants.TRAININGS)
-@Api(tags = "Training Management")
+@Tag(name = "Training Management")
 public class TrainingController {
 
     private final TrainingService trainingService;
@@ -25,11 +25,11 @@ public class TrainingController {
     }
 
     @PostMapping
-    @ApiOperation(value = "Create a new training session")
+    @Operation(summary = "Create a new training session")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "Training created successfully"),
-            @ApiResponse(code = 400, message = "Invalid request body"),
-            @ApiResponse(code = 404, message = "Trainee or trainer not found")
+            @ApiResponse(responseCode = "200", description = "Training created successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid request body"),
+            @ApiResponse(responseCode = "404", description = "Trainee or trainer not found")
     })
     public ResponseEntity<Void> create(
             @Valid @RequestBody TrainingCreateRequestDto dto) {
