@@ -66,6 +66,10 @@ public class SessionAuthFilter extends OncePerRequestFilter {
     private boolean isPublic(String path, String method) {
         if (path.equals("/api/auth/login"))           return true;
         if (path.equals("/api/auth/change-password")) return true;
+        if (path.equals("/actuator/prometheus")) return true;
+        if (path.equals("/actuator/metrics")) return true;
+        if (path.equals("/actuator/health")) return true;
+        if (path.equals("/actuator/info")) return true;
 
         if ("POST".equalsIgnoreCase(method) && path.equals("/api/trainees")) return true;
         if ("POST".equalsIgnoreCase(method) && path.equals("/api/trainers"))  return true;
