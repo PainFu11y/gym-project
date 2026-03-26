@@ -242,11 +242,13 @@ class TraineeRepositoryImplTest {
         trainee.setActive(false);
 
         TypedQuery<Trainee> query = mock(TypedQuery.class);
-        when(entityManager.createQuery(
-                "SELECT t FROM Trainee t WHERE t.username = :username", Trainee.class))
+
+        when(entityManager.createQuery(anyString(), eq(Trainee.class)))
                 .thenReturn(query);
-        when(query.setParameter("username", "Jane.Doe")).thenReturn(query);
-        when(query.getSingleResult()).thenReturn(trainee);
+        when(query.setParameter(eq("username"), eq("Jane.Doe")))
+                .thenReturn(query);
+        when(query.getResultStream())
+                .thenReturn(Stream.of(trainee));
 
         traineeRepository.toggleStatus("Jane.Doe");
 
