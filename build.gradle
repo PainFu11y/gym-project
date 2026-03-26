@@ -44,7 +44,7 @@ dependencies {
     implementation 'org.mapstruct:mapstruct:1.5.5.Final'
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
 
-    // Jackson JSR310 (included transitively, but explicit is fine)
+    // Jackson JSR310
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
     // Tests
