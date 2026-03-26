@@ -367,17 +367,17 @@ class TrainerRepositoryImplTest {
         assertThat(result).isEmpty();
     }
 
-
     @Test
     void toggleStatus_shouldDeactivateTrainer_whenCurrentlyActive() {
         trainer.setActive(true);
 
         TypedQuery<Trainer> query = mock(TypedQuery.class);
+
         when(entityManager.createQuery(
                 "SELECT t FROM Trainer t WHERE t.username = :username", Trainer.class))
                 .thenReturn(query);
         when(query.setParameter("username", "John.Smith")).thenReturn(query);
-        when(query.getSingleResult()).thenReturn(trainer);
+        when(query.getResultStream()).thenReturn(Stream.of(trainer));
 
         trainerRepository.toggleStatus("John.Smith");
 

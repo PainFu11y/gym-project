@@ -1,5 +1,6 @@
 package com.gym_project.service.impl;
 
+import com.gym_project.actuator.metrics.GymMetrics;
 import com.gym_project.dto.create.request.TraineeCreateRequestDto;
 import com.gym_project.dto.create.response.TraineeCreateResponseDto;
 import com.gym_project.dto.request.LoginRequestDto;
@@ -15,16 +16,17 @@ import com.gym_project.entity.TrainingType;
 import com.gym_project.exception.EntityNotFoundException;
 import com.gym_project.exception.InvalidCredentialsException;
 import com.gym_project.mapper.TraineeMapper;
-import com.gym_project.mapper.TrainerMapper;
 import com.gym_project.mapper.TrainingMapper;
 import com.gym_project.repository.TraineeRepository;
-import com.gym_project.repository.TrainerRepository;
 import com.gym_project.repository.TrainingRepository;
+import com.gym_project.security.AuthContext;
+import com.gym_project.security.Role;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.HashSet;
@@ -38,10 +40,16 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class TraineeServiceImplTest {
 
-    @Mock private TraineeRepository traineeRepository;
-    @Mock private TrainingRepository trainingRepository;
-    @Mock private TraineeMapper traineeMapper;
-    @Mock private TrainingMapper trainingMapper;
+    @Mock
+    private TraineeRepository traineeRepository;
+    @Mock
+    private TrainingRepository trainingRepository;
+    @Mock
+    private TraineeMapper traineeMapper;
+    @Mock
+    private TrainingMapper trainingMapper;
+    @Mock
+    private GymMetrics gymMetrics;
 
     @InjectMocks
     private TraineeServiceImpl traineeService;
@@ -148,11 +156,16 @@ class TraineeServiceImplTest {
         when(traineeRepository.update(trainee)).thenReturn(trainee);
         when(traineeMapper.toResponseDto(trainee)).thenReturn(responseDto);
 
-        TraineeResponseDto result = traineeService.update(dto);
+        try (MockedStatic<AuthContext> authContext = mockStatic(AuthContext.class)) {
+            authContext.when(AuthContext::getUsername).thenReturn("Jane.Doe");
+            authContext.when(AuthContext::getRole).thenReturn(Role.TRAINEE);
 
-        assertThat(result.getUsername()).isEqualTo("Jane.Doe");
-        verify(traineeMapper).updateEntity(dto, trainee);
-        verify(traineeRepository).update(trainee);
+            TraineeResponseDto result = traineeService.update(dto);
+
+            assertThat(result.getUsername()).isEqualTo("Jane.Doe");
+            verify(traineeMapper).updateEntity(dto, trainee);
+            verify(traineeRepository).update(trainee);
+        }
     }
 
     @Test
@@ -160,31 +173,45 @@ class TraineeServiceImplTest {
         TraineeUpdateRequestDto dto = new TraineeUpdateRequestDto();
         dto.setUsername("ghost");
 
-        when(traineeRepository.findByUsername("ghost")).thenReturn(Optional.empty());
+        when(traineeRepository.findByUsername("ghost"))
+                .thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> traineeService.update(dto))
-                .isInstanceOf(EntityNotFoundException.class)
-                .hasMessageContaining("ghost");
+        try (MockedStatic<AuthContext> authContext = mockStatic(AuthContext.class)) {
+            authContext.when(AuthContext::getUsername).thenReturn("ghost");
+            authContext.when(AuthContext::getRole).thenReturn(Role.TRAINEE);
+
+            assertThatThrownBy(() -> traineeService.update(dto))
+                    .isInstanceOf(EntityNotFoundException.class)
+                    .hasMessageContaining("ghost");
+        }
     }
 
 
     @Test
     void deleteByUsername_shouldCallRepository() {
-        doNothing().when(traineeRepository).deleteByUsername("Jane.Doe");
+        try (MockedStatic<AuthContext> authContext = mockStatic(AuthContext.class)) {
 
-        traineeService.deleteByUsername("Jane.Doe");
+            authContext.when(AuthContext::getUsername).thenReturn("Jane.Doe");
+            authContext.when(AuthContext::getRole).thenReturn(Role.TRAINEE);
 
-        verify(traineeRepository).deleteByUsername("Jane.Doe");
+            traineeService.deleteByUsername("Jane.Doe");
+
+            verify(traineeRepository).deleteByUsername("Jane.Doe");
+        }
     }
 
 
     @Test
     void toggleStatus_shouldCallRepository() {
-        doNothing().when(traineeRepository).toggleStatus("Jane.Doe");
+        try (MockedStatic<AuthContext> authContext = mockStatic(AuthContext.class)) {
 
-        traineeService.toggleStatus("Jane.Doe");
+            authContext.when(AuthContext::getUsername).thenReturn("Jane.Doe");
+            authContext.when(AuthContext::getRole).thenReturn(Role.TRAINEE);
 
-        verify(traineeRepository).toggleStatus("Jane.Doe");
+            traineeService.toggleStatus("Jane.Doe");
+
+            verify(traineeRepository).toggleStatus("Jane.Doe");
+        }
     }
 
 
@@ -199,9 +226,15 @@ class TraineeServiceImplTest {
         when(trainingRepository.findByTraineeFilter(filter)).thenReturn(List.of(training));
         when(trainingMapper.toResponseDtoList(List.of(training))).thenReturn(List.of(trainingDto));
 
-        List<TrainingResponseDto> result = traineeService.getTraineeTrainings(filter);
+        try (MockedStatic<AuthContext> authContext = mockStatic(AuthContext.class)) {
 
-        assertThat(result).hasSize(1);
+            authContext.when(AuthContext::getUsername).thenReturn("Jane.Doe");
+            authContext.when(AuthContext::getRole).thenReturn(Role.TRAINEE);
+
+            List<TrainingResponseDto> result = traineeService.getTraineeTrainings(filter);
+
+            assertThat(result).hasSize(1);
+        }
     }
 
     @Test
@@ -212,9 +245,15 @@ class TraineeServiceImplTest {
         when(trainingRepository.findByTraineeFilter(filter)).thenReturn(List.of());
         when(trainingMapper.toResponseDtoList(List.of())).thenReturn(List.of());
 
-        List<TrainingResponseDto> result = traineeService.getTraineeTrainings(filter);
+        try (MockedStatic<AuthContext> authContext = mockStatic(AuthContext.class)) {
 
-        assertThat(result).isEmpty();
+            authContext.when(AuthContext::getUsername).thenReturn("Jane.Doe");
+            authContext.when(AuthContext::getRole).thenReturn(Role.TRAINEE);
+
+            List<TrainingResponseDto> result = traineeService.getTraineeTrainings(filter);
+
+            assertThat(result).isEmpty();
+        }
     }
 
 
