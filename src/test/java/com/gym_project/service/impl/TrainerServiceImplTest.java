@@ -17,6 +17,8 @@ import com.gym_project.mapper.TrainingMapper;
 import com.gym_project.repository.TrainerRepository;
 import com.gym_project.repository.TrainingRepository;
 import com.gym_project.repository.TrainingTypeRepository;
+import com.gym_project.security.AuthContext;
+import com.gym_project.security.Role;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -244,7 +246,11 @@ class TrainerServiceImplTest {
     }
 
     @Test
-    void toggleStatus_shouldCallRepository() {
+    void toggleStatus_shouldCallRepository_whenAuthorized() {
+        mockStatic(AuthContext.class);
+        when(AuthContext.getUsername()).thenReturn("John.Smith");
+        when(AuthContext.getRole()).thenReturn(Role.TRAINER);
+
         doNothing().when(trainerRepository).toggleStatus("John.Smith");
 
         trainerService.toggleStatus("John.Smith");
