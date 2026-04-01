@@ -1,5 +1,6 @@
 package com.gym_project.security;
 
+import com.gym_project.actuator.metrics.GymMetrics;
 import com.gym_project.entity.Trainee;
 import com.gym_project.entity.Trainer;
 import com.gym_project.exception.InvalidCredentialsException;
@@ -20,9 +21,14 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class LoginServiceTest {
 
-    @Mock private TrainerRepository trainerRepository;
-    @Mock private TraineeRepository traineeRepository;
-    @Mock private AuthService authService;
+    @Mock
+    private TrainerRepository trainerRepository;
+    @Mock
+    private TraineeRepository traineeRepository;
+    @Mock
+    private AuthService authService;
+    @Mock
+    private GymMetrics gymMetrics;
 
     @InjectMocks
     private LoginService loginService;

@@ -1,5 +1,6 @@
 package com.gym_project.security;
 
+import com.gym_project.actuator.metrics.GymMetrics;
 import com.gym_project.entity.Trainee;
 import com.gym_project.entity.Trainer;
 import com.gym_project.exception.InvalidCredentialsException;
@@ -18,14 +19,17 @@ public class LoginService {
     private final TraineeRepository traineeRepository;
     private final AuthService authService;
 
+    private final GymMetrics gymMetrics;
+
     public LoginService(
             TrainerRepository trainerRepository,
             TraineeRepository traineeRepository,
-            AuthService authService
+            AuthService authService, GymMetrics gymMetrics
     ) {
         this.trainerRepository = trainerRepository;
         this.traineeRepository = traineeRepository;
         this.authService = authService;
+        this.gymMetrics = gymMetrics;
     }
 
     public void login(String username, String password) {
@@ -36,6 +40,7 @@ public class LoginService {
         if (trainer.isPresent()) {
             authService.authenticate(username, Role.TRAINER);
             log.info("Login successful: username='{}', role=TRAINER", username);
+            gymMetrics.recordLoginSuccess();
             return;
         }
 
@@ -44,10 +49,12 @@ public class LoginService {
         if (trainee.isPresent() && trainee.get().getPassword().equals(password)) {
             authService.authenticate(username, Role.TRAINEE);
             log.info("Login successful: username='{}', role=TRAINEE", username);
+            gymMetrics.recordLoginSuccess();
             return;
         }
 
         log.warn("Login failed - invalid credentials for username='{}'", username);
+        gymMetrics.recordLoginFailure();
         throw new InvalidCredentialsException();
     }
 

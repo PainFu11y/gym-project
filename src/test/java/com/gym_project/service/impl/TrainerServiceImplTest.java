@@ -1,5 +1,6 @@
 package com.gym_project.service.impl;
 
+import com.gym_project.actuator.metrics.GymMetrics;
 import com.gym_project.dto.create.request.TrainerCreateRequestDto;
 import com.gym_project.dto.create.response.TrainerCreateResponseDto;
 import com.gym_project.dto.filter.TrainerTrainingFilterDto;
@@ -16,6 +17,8 @@ import com.gym_project.mapper.TrainingMapper;
 import com.gym_project.repository.TrainerRepository;
 import com.gym_project.repository.TrainingRepository;
 import com.gym_project.repository.TrainingTypeRepository;
+import com.gym_project.security.AuthContext;
+import com.gym_project.security.Role;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,11 +39,18 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class TrainerServiceImplTest {
 
-    @Mock private TrainerRepository trainerRepository;
-    @Mock private TrainingRepository trainingRepository;
-    @Mock private TrainingTypeRepository trainingTypeRepository;
-    @Mock private TrainerMapper trainerMapper;
-    @Mock private TrainingMapper trainingMapper;
+    @Mock
+    private TrainerRepository trainerRepository;
+    @Mock
+    private TrainingRepository trainingRepository;
+    @Mock
+    private TrainingTypeRepository trainingTypeRepository;
+    @Mock
+    private TrainerMapper trainerMapper;
+    @Mock
+    private TrainingMapper trainingMapper;
+    @Mock
+    private GymMetrics gymMetrics;
 
     @InjectMocks
     private TrainerServiceImpl trainerService;
@@ -236,7 +246,11 @@ class TrainerServiceImplTest {
     }
 
     @Test
-    void toggleStatus_shouldCallRepository() {
+    void toggleStatus_shouldCallRepository_whenAuthorized() {
+        mockStatic(AuthContext.class);
+        when(AuthContext.getUsername()).thenReturn("John.Smith");
+        when(AuthContext.getRole()).thenReturn(Role.TRAINER);
+
         doNothing().when(trainerRepository).toggleStatus("John.Smith");
 
         trainerService.toggleStatus("John.Smith");

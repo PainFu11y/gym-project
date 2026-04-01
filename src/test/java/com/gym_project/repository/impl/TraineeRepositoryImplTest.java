@@ -8,8 +8,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -218,17 +218,18 @@ class TraineeRepositoryImplTest {
         verify(entityManager, never()).merge(any());
     }
 
-
     @Test
     void toggleStatus_shouldDeactivateTrainee_whenCurrentlyActive() {
         trainee.setActive(true);
 
         TypedQuery<Trainee> query = mock(TypedQuery.class);
-        when(entityManager.createQuery(
-                "SELECT t FROM Trainee t WHERE t.username = :username", Trainee.class))
+
+        when(entityManager.createQuery(anyString(), eq(Trainee.class)))
                 .thenReturn(query);
-        when(query.setParameter("username", "Jane.Doe")).thenReturn(query);
-        when(query.getSingleResult()).thenReturn(trainee);
+        when(query.setParameter(eq("username"), eq("Jane.Doe")))
+                .thenReturn(query);
+        when(query.getResultStream())
+                .thenReturn(Stream.of(trainee));
 
         traineeRepository.toggleStatus("Jane.Doe");
 
@@ -241,11 +242,13 @@ class TraineeRepositoryImplTest {
         trainee.setActive(false);
 
         TypedQuery<Trainee> query = mock(TypedQuery.class);
-        when(entityManager.createQuery(
-                "SELECT t FROM Trainee t WHERE t.username = :username", Trainee.class))
+
+        when(entityManager.createQuery(anyString(), eq(Trainee.class)))
                 .thenReturn(query);
-        when(query.setParameter("username", "Jane.Doe")).thenReturn(query);
-        when(query.getSingleResult()).thenReturn(trainee);
+        when(query.setParameter(eq("username"), eq("Jane.Doe")))
+                .thenReturn(query);
+        when(query.getResultStream())
+                .thenReturn(Stream.of(trainee));
 
         traineeRepository.toggleStatus("Jane.Doe");
 

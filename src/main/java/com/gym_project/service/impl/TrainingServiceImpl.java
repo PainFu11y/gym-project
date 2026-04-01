@@ -1,5 +1,6 @@
 package com.gym_project.service.impl;
 
+import com.gym_project.actuator.metrics.GymMetrics;
 import com.gym_project.dto.create.request.TrainingCreateRequestDto;
 import com.gym_project.entity.Trainee;
 import com.gym_project.entity.Trainer;
@@ -13,7 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import com.gym_project.security.PreAuthorize;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
+import jakarta.transaction.Transactional;
 
 @Slf4j
 @Service
@@ -23,14 +24,17 @@ public class TrainingServiceImpl implements TrainingService {
     private final TrainerRepository trainerRepository;
     private final TraineeRepository traineeRepository;
 
+    private final GymMetrics gymMetrics;
+
     public TrainingServiceImpl(
             TrainingRepository trainingRepository,
             TrainerRepository trainerRepository,
-            TraineeRepository traineeRepository
+            TraineeRepository traineeRepository, GymMetrics gymMetrics
     ) {
         this.trainingRepository = trainingRepository;
         this.trainerRepository = trainerRepository;
         this.traineeRepository = traineeRepository;
+        this.gymMetrics = gymMetrics;
     }
 
     @Override
@@ -66,5 +70,6 @@ public class TrainingServiceImpl implements TrainingService {
         log.info("Training created: name='{}', trainee='{}', trainer='{}', date={}, duration={}",
                 dto.getTrainingName(), dto.getTraineeUsername(), dto.getTrainerUsername(),
                 dto.getTrainingDate(), dto.getTrainingDuration());
+        gymMetrics.recordTrainingCreated();
     }
 }

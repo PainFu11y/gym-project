@@ -10,8 +10,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -367,17 +367,17 @@ class TrainerRepositoryImplTest {
         assertThat(result).isEmpty();
     }
 
-
     @Test
     void toggleStatus_shouldDeactivateTrainer_whenCurrentlyActive() {
         trainer.setActive(true);
 
         TypedQuery<Trainer> query = mock(TypedQuery.class);
+
         when(entityManager.createQuery(
                 "SELECT t FROM Trainer t WHERE t.username = :username", Trainer.class))
                 .thenReturn(query);
         when(query.setParameter("username", "John.Smith")).thenReturn(query);
-        when(query.getSingleResult()).thenReturn(trainer);
+        when(query.getResultStream()).thenReturn(Stream.of(trainer));
 
         trainerRepository.toggleStatus("John.Smith");
 
@@ -390,11 +390,12 @@ class TrainerRepositoryImplTest {
         trainer.setActive(false);
 
         TypedQuery<Trainer> query = mock(TypedQuery.class);
+
         when(entityManager.createQuery(
                 "SELECT t FROM Trainer t WHERE t.username = :username", Trainer.class))
                 .thenReturn(query);
         when(query.setParameter("username", "John.Smith")).thenReturn(query);
-        when(query.getSingleResult()).thenReturn(trainer);
+        when(query.getResultStream()).thenReturn(Stream.of(trainer));
 
         trainerRepository.toggleStatus("John.Smith");
 

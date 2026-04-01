@@ -1,5 +1,6 @@
 package com.gym_project.service.impl;
 
+import com.gym_project.actuator.metrics.GymMetrics;
 import com.gym_project.dto.create.request.TrainerCreateRequestDto;
 import com.gym_project.dto.create.response.TrainerCreateResponseDto;
 import com.gym_project.dto.filter.TrainerTrainingFilterDto;
@@ -39,18 +40,21 @@ public class TrainerServiceImpl implements TrainerService {
     private final TrainerMapper trainerMapper;
     private final TrainingMapper trainingMapper;
 
+    private final GymMetrics gymMetrics;
+
     public TrainerServiceImpl(
             TrainerRepository trainerRepository,
             TrainerMapper trainerMapper,
             TrainingMapper trainingMapper,
             TrainingTypeRepository trainingTypeRepository,
-            TrainingRepository trainingRepository
+            TrainingRepository trainingRepository, GymMetrics gymMetrics
     ) {
         this.trainerRepository = trainerRepository;
         this.trainerMapper = trainerMapper;
         this.trainingMapper = trainingMapper;
         this.trainingTypeRepository = trainingTypeRepository;
         this.trainingRepository = trainingRepository;
+        this.gymMetrics = gymMetrics;
     }
 
     @Override
@@ -79,6 +83,7 @@ public class TrainerServiceImpl implements TrainerService {
         trainerRepository.save(trainer);
 
         log.info("Trainer created with username='{}'", trainer.getUsername());
+        gymMetrics.recordTrainerRegistration();
         return trainerMapper.toCreateResponseDto(trainer);
     }
 

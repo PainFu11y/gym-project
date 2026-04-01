@@ -11,9 +11,13 @@ import com.gym_project.dto.update.request.TraineeUpdateRequestDto;
 import com.gym_project.dto.update.request.UpdateTraineeTrainerListRequestDto;
 import com.gym_project.service.TraineeService;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,7 +25,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping(RoutConstants.BASE_URL + RoutConstants.TRAINEES)
-@Api(tags = "Trainee Management")
+@Tag(name = "Trainee Management")
 public class TraineeController {
 
     private final TraineeService traineeService;
@@ -31,10 +35,10 @@ public class TraineeController {
     }
 
     @PostMapping
-    @ApiOperation("Create new Trainee")
+    @Operation(summary = "Create new Trainee")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "Trainee created successfully"),
-            @ApiResponse(code = 400, message = "Invalid request body")
+            @ApiResponse(responseCode = "200", description = "Trainee created successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid request body")
     })
     public ResponseEntity<TraineeCreateResponseDto> create(
             @Valid @RequestBody TraineeCreateRequestDto dto
@@ -43,24 +47,24 @@ public class TraineeController {
     }
 
     @GetMapping("/{username}")
-    @ApiOperation("Get trainee by username")
+    @Operation(summary = "Get trainee by username")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "Trainee found"),
-            @ApiResponse(code = 404, message = "Trainee not found")
+            @ApiResponse(responseCode = "200", description = "Trainee found"),
+            @ApiResponse(responseCode = "404", description = "Trainee not found")
     })
     public ResponseEntity<TraineeResponseDto> getByUsername(
-            @ApiParam(required = true)
+            @Parameter(required = true)
             @PathVariable String username
     ) {
         return ResponseEntity.ok(traineeService.getByUsername(username));
     }
 
     @PutMapping
-    @ApiOperation(value = "Update trainee profile")
+    @Operation(summary = "Update trainee profile")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "Trainee updated successfully"),
-            @ApiResponse(code = 400, message = "Invalid request body"),
-            @ApiResponse(code = 404, message = "Trainee not found")
+            @ApiResponse(responseCode = "200", description = "Trainee updated successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid request body"),
+            @ApiResponse(responseCode = "404", description = "Trainee not found")
     })
     public ResponseEntity<TraineeResponseDto> update(
             @Valid @RequestBody TraineeUpdateRequestDto dto
@@ -69,10 +73,10 @@ public class TraineeController {
     }
 
     @DeleteMapping("/{username}")
-    @ApiOperation(value = "Delete trainee by username")
+    @Operation(summary = "Delete trainee by username")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "Trainee deleted successfully"),
-            @ApiResponse(code = 404, message = "Trainee not found")
+            @ApiResponse(responseCode = "200", description = "Trainee deleted successfully"),
+            @ApiResponse(responseCode = "404", description = "Trainee not found")
     })
     public ResponseEntity<Void> delete(
             @PathVariable String username
@@ -82,11 +86,11 @@ public class TraineeController {
     }
 
     @PutMapping("/trainers")
-    @ApiOperation(value = "Update trainee's trainer list")
+    @Operation(summary = "Update trainee's trainer list")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "Trainer list updated successfully"),
-            @ApiResponse(code = 400, message = "Invalid request body"),
-            @ApiResponse(code = 404, message = "Trainee not found")
+            @ApiResponse(responseCode = "200", description = "Trainer list updated successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid request body"),
+            @ApiResponse(responseCode = "404", description = "Trainee not found")
     })
     public ResponseEntity<List<TrainerSummaryDto>> updateTrainerList(
             @Valid @RequestBody UpdateTraineeTrainerListRequestDto dto
@@ -95,14 +99,14 @@ public class TraineeController {
     }
 
     @PostMapping("/trainings/filter")
-    @ApiOperation(value = "Get trainee's trainings")
+    @Operation(summary = "Get trainee's trainings")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "Trainings retrieved successfully"),
-            @ApiResponse(code = 400, message = "Invalid filter parameters"),
-            @ApiResponse(code = 404, message = "Trainee not found")
+            @ApiResponse(responseCode = "200", description = "Trainings retrieved successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid filter parameters"),
+            @ApiResponse(responseCode = "404", description = "Trainee not found")
     })
     public ResponseEntity<List<TrainingResponseDto>> getTrainings(
-            @ApiParam(value = "Filter criteria (username, date range, trainer name, training type)", required = true)
+            @Parameter(description = "Filter criteria (username, date range, trainer name, training type)", required = true)
             @Valid @RequestBody TraineeTrainingsFilterRequestDto filter
     ) {
         return ResponseEntity.ok(
@@ -111,13 +115,13 @@ public class TraineeController {
     }
 
     @PatchMapping("/{username}/status")
-    @ApiOperation(value = "Toggle trainee active status")
+    @Operation(summary = "Toggle trainee active status")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "Status toggled successfully"),
-            @ApiResponse(code = 404, message = "Trainee not found")
+            @ApiResponse(responseCode = "200", description = "Status toggled successfully"),
+            @ApiResponse(responseCode = "404", description = "Trainee not found")
     })
     public ResponseEntity<Void> toggleStatus(
-            @ApiParam(required = true)
+            @Parameter(required = true)
             @PathVariable String username
     ) {
         traineeService.toggleStatus(username);

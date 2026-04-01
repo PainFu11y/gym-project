@@ -1,6 +1,5 @@
 package com.gym_project.controller;
 
-
 import com.gym_project.constants.RoutConstants;
 import com.gym_project.dto.create.request.TrainerCreateRequestDto;
 import com.gym_project.dto.create.response.TrainerCreateResponseDto;
@@ -12,9 +11,13 @@ import com.gym_project.dto.update.request.TrainerUpdateRequestDto;
 import com.gym_project.dto.update.response.TrainerUpdateResponseDto;
 import com.gym_project.service.TrainerService;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,7 +25,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping(RoutConstants.BASE_URL + RoutConstants.TRAINERS)
-@Api(tags = "Trainer Management")
+@Tag(name = "Trainer Management")
 public class TrainerController {
 
     private final TrainerService trainerService;
@@ -32,13 +35,13 @@ public class TrainerController {
     }
 
     @PostMapping
-    @ApiOperation(value = "Create a new trainer")
+    @Operation(summary = "Create a new trainer")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "Trainer created successfully"),
-            @ApiResponse(code = 400, message = "Invalid request body")
+            @ApiResponse(responseCode = "200", description = "Trainer created successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid request body")
     })
     public ResponseEntity<TrainerCreateResponseDto> create(
-            @ApiParam(required = true)
+            @Parameter(required = true)
             @Valid @RequestBody TrainerCreateRequestDto dto) {
 
         TrainerCreateResponseDto response = trainerService.create(dto);
@@ -46,13 +49,13 @@ public class TrainerController {
     }
 
     @GetMapping("/{username}")
-    @ApiOperation(value = "Get trainer by username")
+    @Operation(summary = "Get trainer by username")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "Trainer found"),
-            @ApiResponse(code = 404, message = "Trainer not found")
+            @ApiResponse(responseCode = "200", description = "Trainer found"),
+            @ApiResponse(responseCode = "404", description = "Trainer not found")
     })
     public ResponseEntity<TrainerResponseDto> getByUsername(
-            @ApiParam(required = true)
+            @Parameter(required = true)
             @PathVariable String username) {
 
         TrainerResponseDto response = trainerService.getByUsername(username);
@@ -60,14 +63,14 @@ public class TrainerController {
     }
 
     @PutMapping
-    @ApiOperation(value = "Update trainer profile")
+    @Operation(summary = "Update trainer profile")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "Trainer updated successfully"),
-            @ApiResponse(code = 400, message = "Invalid request body"),
-            @ApiResponse(code = 404, message = "Trainer not found")
+            @ApiResponse(responseCode = "200", description = "Trainer updated successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid request body"),
+            @ApiResponse(responseCode = "404", description = "Trainer not found")
     })
     public ResponseEntity<TrainerUpdateResponseDto> update(
-            @ApiParam(required = true)
+            @Parameter(required = true)
             @Valid @RequestBody TrainerUpdateRequestDto dto) {
 
         TrainerUpdateResponseDto response = trainerService.update(dto);
@@ -75,13 +78,13 @@ public class TrainerController {
     }
 
     @GetMapping("/unassigned/{username}")
-    @ApiOperation(value = "Get unassigned active trainers")
+    @Operation(summary = "Get unassigned active trainers")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "Trainers retrieved successfully"),
-            @ApiResponse(code = 404, message = "Trainee not found")
+            @ApiResponse(responseCode = "200", description = "Trainers retrieved successfully"),
+            @ApiResponse(responseCode = "404", description = "Trainee not found")
     })
     public ResponseEntity<List<TrainerSummaryDto>> getUnassignedActiveTrainers(
-            @ApiParam(required = true)
+            @Parameter(required = true)
             @PathVariable String username) {
 
         List<TrainerSummaryDto> trainers =
@@ -91,11 +94,11 @@ public class TrainerController {
     }
 
     @PostMapping("/trainings/filter")
-    @ApiOperation(value = "Get trainer's trainings")
+    @Operation(summary = "Get trainer's trainings")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "Trainings retrieved successfully"),
-            @ApiResponse(code = 400, message = "Invalid filter parameters"),
-            @ApiResponse(code = 404, message = "Trainer not found")
+            @ApiResponse(responseCode = "200", description = "Trainings retrieved successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid filter parameters"),
+            @ApiResponse(responseCode = "404", description = "Trainer not found")
     })
     public ResponseEntity<List<TrainingResponseDto>> getTrainerTrainings(
             @RequestBody TrainerTrainingFilterDto dto) {
@@ -107,13 +110,13 @@ public class TrainerController {
     }
 
     @PatchMapping("/{username}/status")
-    @ApiOperation(value = "Toggle trainer active status")
+    @Operation(summary = "Toggle trainer active status")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "Status toggled successfully"),
-            @ApiResponse(code = 404, message = "Trainer not found")
+            @ApiResponse(responseCode = "200", description = "Status toggled successfully"),
+            @ApiResponse(responseCode = "404", description = "Trainer not found")
     })
     public ResponseEntity<Void> toggleStatus(
-            @ApiParam(required = true)
+            @Parameter(required = true)
             @PathVariable String username) {
 
         trainerService.toggleStatus(username);

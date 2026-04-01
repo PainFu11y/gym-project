@@ -1,5 +1,6 @@
 package com.gym_project.service.impl;
 
+import com.gym_project.actuator.metrics.GymMetrics;
 import com.gym_project.dto.create.request.TrainingCreateRequestDto;
 import com.gym_project.entity.Trainee;
 import com.gym_project.entity.Trainer;
@@ -27,9 +28,14 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class TrainingServiceImplTest {
 
-    @Mock private TrainingRepository trainingRepository;
-    @Mock private TrainerRepository trainerRepository;
-    @Mock private TraineeRepository traineeRepository;
+    @Mock
+    private TrainingRepository trainingRepository;
+    @Mock
+    private TrainerRepository trainerRepository;
+    @Mock
+    private TraineeRepository traineeRepository;
+    @Mock
+    private GymMetrics gymMetrics;
 
     @InjectMocks
     private TrainingServiceImpl trainingService;
