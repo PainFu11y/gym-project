@@ -1,8 +1,6 @@
 package com.gym_project.controller;
 
 import com.gym_project.constants.RoutConstants;
-import com.gym_project.security.AuthContext;
-import com.gym_project.security.AuthService;
 import com.gym_project.security.LoginService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -24,11 +22,9 @@ public class LoginController {
     private static final String SESSION_ROLE     = "AUTH_ROLE";
 
     private final LoginService loginService;
-    private final AuthService authService;
 
-    public LoginController(LoginService loginService, AuthService authService) {
+    public LoginController(LoginService loginService) {
         this.loginService = loginService;
-        this.authService = authService;
     }
 
     @GetMapping("/login")
@@ -43,11 +39,6 @@ public class LoginController {
             HttpServletRequest request
     ) {
         loginService.login(username, password);
-
-        HttpSession session = request.getSession(true);
-        session.setAttribute(SESSION_USERNAME, AuthContext.getUsername());
-        session.setAttribute(SESSION_ROLE,     AuthContext.getRole());
-
         return ResponseEntity.ok().build();
     }
 
@@ -72,11 +63,7 @@ public class LoginController {
             @ApiResponse(responseCode = "200", description = "Logout successful")
     })
     public ResponseEntity<Void> logout(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        if (session != null) {
-            session.invalidate();
-        }
-        authService.logout();
+
         return ResponseEntity.ok().build();
     }
 }
