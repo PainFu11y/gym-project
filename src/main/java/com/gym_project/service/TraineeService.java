@@ -27,8 +27,6 @@ public interface TraineeService {
 
     List<TrainingResponseDto> getTraineeTrainings(TraineeTrainingsFilterRequestDto filter);
 
-    TraineeResponseDto validateCredentials(LoginRequestDto dto);
-
     List<TrainerResponseDto> getTrainers(String username);
 
     List<TrainerSummaryDto> updateTrainerList(UpdateTraineeTrainerListRequestDto dto);
