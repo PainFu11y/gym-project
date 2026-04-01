@@ -24,7 +24,7 @@ import com.gym_project.service.TrainerService;
 import com.gym_project.utils.PasswordGenerator;
 import com.gym_project.utils.UsernameGenerator;
 import lombok.extern.slf4j.Slf4j;
-import com.gym_project.security.PreAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
