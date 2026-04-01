@@ -2,6 +2,7 @@ package com.gym_project.config;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -14,6 +15,7 @@ public class SwaggerConfig {
                 .info(new Info()
                         .title("Gym Project API")
                         .description("REST API documentation")
-                        .version("1.0.0"));
+                        .version("1.0.0"))
+           .addSecurityItem(new SecurityRequirement().addList("basicAuth"));
     }
 }
