@@ -18,8 +18,6 @@ public interface TrainerRepository {
 
     List<Trainer> findAll();
 
-    Optional<Trainer> findByUsernameAndPassword(String username, String password);
-
     Optional<Trainer> findByUsername(String username);
 
     void changePassword(String username, String newPassword);
