@@ -81,13 +81,16 @@ public class TrainerServiceImpl implements TrainerService {
         trainer.setUsername(UsernameGenerator.generate(
                 trainer.getFirstName(), trainer.getLastName(), existingUsernames));
 
-        trainer.setPassword(loginService.encodePassword(PasswordGenerator.generate()));
+        String rawPassword = PasswordGenerator.generate();
+        trainer.setPassword(loginService.encodePassword(rawPassword));
 
         trainerRepository.save(trainer);
 
         log.info("Trainer created with username='{}'", trainer.getUsername());
         gymMetrics.recordTrainerRegistration();
-        return trainerMapper.toCreateResponseDto(trainer);
+        TrainerCreateResponseDto createResponseDto = trainerMapper.toCreateResponseDto(trainer);
+        createResponseDto.setPassword(rawPassword);
+        return createResponseDto;
     }
 
     @Override

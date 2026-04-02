@@ -78,12 +78,15 @@ public class TraineeServiceImpl implements TraineeService {
         Trainee trainee = traineeMapper.toEntity(dto);
         trainee.setUsername(generatedUsername);
 
-        trainee.setPassword(loginService.encodePassword(PasswordGenerator.generate()));
+        String rawPassword = PasswordGenerator.generate();
+        trainee.setPassword(loginService.encodePassword(rawPassword));
         traineeRepository.save(trainee);
 
         log.info("Trainee created with username='{}'", generatedUsername);
         gymMetrics.recordTraineeRegistration();
-        return traineeMapper.toCreateResponseDto(trainee);
+        TraineeCreateResponseDto createResponseDto = traineeMapper.toCreateResponseDto(trainee);
+        createResponseDto.setPassword(rawPassword);
+        return createResponseDto;
     }
 
     @Override
