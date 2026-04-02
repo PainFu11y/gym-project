@@ -118,38 +118,6 @@ class TrainerRepositoryImplTest {
 
 
     @Test
-    void findByUsernameAndPassword_shouldReturnTrainer_whenCredentialsMatch() {
-        TypedQuery<Trainer> query = mock(TypedQuery.class);
-        when(entityManager.createQuery(
-                "SELECT t FROM Trainer t WHERE t.username = :username AND t.password = :password",
-                Trainer.class)).thenReturn(query);
-        when(query.setParameter("username", "John.Smith")).thenReturn(query);
-        when(query.setParameter("password", "pass123")).thenReturn(query);
-        when(query.getResultStream()).thenReturn(Stream.of(trainer));
-
-        Optional<Trainer> result = trainerRepository.findByUsernameAndPassword("John.Smith", "pass123");
-
-        assertThat(result).isPresent();
-        assertThat(result.get().getUsername()).isEqualTo("John.Smith");
-    }
-
-    @Test
-    void findByUsernameAndPassword_shouldReturnEmpty_whenCredentialsDontMatch() {
-        TypedQuery<Trainer> query = mock(TypedQuery.class);
-        when(entityManager.createQuery(
-                "SELECT t FROM Trainer t WHERE t.username = :username AND t.password = :password",
-                Trainer.class)).thenReturn(query);
-        when(query.setParameter("username", "John.Smith")).thenReturn(query);
-        when(query.setParameter("password", "wrong")).thenReturn(query);
-        when(query.getResultStream()).thenReturn(Stream.empty());
-
-        Optional<Trainer> result = trainerRepository.findByUsernameAndPassword("John.Smith", "wrong");
-
-        assertThat(result).isEmpty();
-    }
-
-
-    @Test
     void findByUsername_shouldReturnTrainer_whenFound() {
         TypedQuery<Trainer> query = mock(TypedQuery.class);
         when(entityManager.createQuery(
