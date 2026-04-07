@@ -33,12 +33,11 @@ public class LoginService {
         this.passwordEncoder   = passwordEncoder;
     }
 
-    public String encodePassword(String rawPassword) {
+   public String encodePassword(String rawPassword) {
         return passwordEncoder.encode(rawPassword);
     }
 
-    public void login(String username, String password) {
-        log.info("Login successful: username='{}'", username);
+    public void recordLoginSuccess() {
         gymMetrics.recordLoginSuccess();
     }
 
