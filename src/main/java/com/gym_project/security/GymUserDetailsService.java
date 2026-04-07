@@ -18,25 +18,28 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class GymUserDetailsService implements UserDetailsService {
 
-    private final TrainerRepository trainerRepository;
-    private final TraineeRepository traineeRepository;
+    private final TrainerRepository   trainerRepository;
+    private final TraineeRepository   traineeRepository;
+    private final LoginAttemptService loginAttemptService;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         log.debug("Loading user by username='{}'", username);
 
+        boolean nonLocked = !loginAttemptService.isBlocked(username);
+
         Optional<Trainer> trainer = trainerRepository.findByUsername(username);
         if (trainer.isPresent()) {
             Trainer t = trainer.get();
             log.debug("Found trainer username='{}'", username);
-            return new GymUserDetails(t.getUsername(), t.getPassword(), Role.TRAINER);
+            return new GymUserDetails(t.getUsername(), t.getPassword(), Role.TRAINER, nonLocked);
         }
 
         Optional<Trainee> trainee = traineeRepository.findByUsername(username);
         if (trainee.isPresent()) {
             Trainee t = trainee.get();
             log.debug("Found trainee username='{}'", username);
-            return new GymUserDetails(t.getUsername(), t.getPassword(), Role.TRAINEE);
+            return new GymUserDetails(t.getUsername(), t.getPassword(), Role.TRAINEE, nonLocked);
         }
 
         log.warn("No user found for username='{}'", username);
