@@ -70,6 +70,9 @@ public class SessionAuthFilter extends OncePerRequestFilter {
         if (path.equals("/actuator/metrics")) return true;
         if (path.equals("/actuator/health")) return true;
         if (path.equals("/actuator/info")) return true;
+        if (path.equals("/api/health")) return true;
+        if (path.equals("/api/health/database")) return true;
+        if (path.equals("/api/health/gym-users")) return true;
 
         if ("POST".equalsIgnoreCase(method) && path.equals("/api/trainees")) return true;
         if ("POST".equalsIgnoreCase(method) && path.equals("/api/trainers"))  return true;
