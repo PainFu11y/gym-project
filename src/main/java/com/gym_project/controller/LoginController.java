@@ -1,6 +1,8 @@
 package com.gym_project.controller;
 
 import com.gym_project.constants.RoutConstants;
+import com.gym_project.security.GymUserDetails;
+import com.gym_project.security.JwtService;
 import com.gym_project.security.LoginService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -8,11 +10,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping(RoutConstants.BASE_URL + RoutConstants.AUTH)
@@ -20,8 +25,9 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class LoginController {
 
-    private final LoginService loginService;
-
+    private final AuthenticationManager authenticationManager;
+    private final JwtService            jwtService;
+    private final LoginService          loginService;
 
     @GetMapping("/login")
     @SecurityRequirement(name = "basicAuth")
@@ -34,8 +40,20 @@ public class LoginController {
             @ApiResponse(responseCode = "200", description = "Login successful"),
             @ApiResponse(responseCode = "401", description = "Invalid credentials")
     })
-    public ResponseEntity<Void> login() {
-    return ResponseEntity.ok().build();
+    public ResponseEntity<Map<String, String>> login(
+            @Parameter(required = true) @RequestParam String username,
+            @Parameter(required = true) @RequestParam String password
+    ) {
+        Authentication auth = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(username, password)
+        );
+
+        GymUserDetails userDetails = (GymUserDetails) auth.getPrincipal();
+        String token = jwtService.generateToken(userDetails);
+
+        loginService.recordLoginSuccess();
+
+        return ResponseEntity.ok(Map.of("token", token));
     }
 
     @PutMapping("/change-password")
@@ -47,15 +65,9 @@ public class LoginController {
     public ResponseEntity<Void> changePassword(
             @Parameter(required = true) @RequestParam String username,
             @Parameter(required = true) @RequestParam String oldPassword,
-            @Parameter(required = true) @RequestParam String newPassword,
-            HttpServletRequest request
+            @Parameter(required = true) @RequestParam String newPassword
     ) {
         loginService.changePassword(username, oldPassword, newPassword);
-        HttpSession session = request.getSession(false);
-        if (session != null) {
-            session.invalidate();
-        }
-
         return ResponseEntity.ok().build();
     }
 
@@ -64,11 +76,7 @@ public class LoginController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Logout successful")
     })
-    public ResponseEntity<Void> logout(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        if (session != null) {
-            session.invalidate();
-        }
+    public ResponseEntity<Void> logout() {
         return ResponseEntity.ok().build();
     }
 }
