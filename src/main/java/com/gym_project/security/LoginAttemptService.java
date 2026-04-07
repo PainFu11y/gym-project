@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class LoginAttemptService {
     @Value("${security.login.max-attempts}")
-    private static int maxAttempts;
+    private int maxAttempts;
 
     @Value("${security.login.block-duration-seconds}")
     private long blockDurationSeconds;
@@ -26,7 +26,7 @@ public class LoginAttemptService {
             if (record == null) {
                 record = new AttemptRecord();
             }
-            record.increment();
+            record.increment(maxAttempts);
             return record;
         });
 
@@ -74,17 +74,17 @@ public class LoginAttemptService {
 
     static class AttemptRecord {
 
-        private int     count    = 0;
+        private int count = 0;
         private Instant lockTime = null;
 
-        void increment() {
+        void increment(int maxAttempts) {
             count++;
             if (count == maxAttempts) {
                 lockTime = Instant.now();
             }
         }
 
-        int     getCount()    { return count; }
+        int getCount() { return count; }
         Instant getLockTime() { return lockTime; }
     }
 }
