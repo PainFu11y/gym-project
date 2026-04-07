@@ -10,15 +10,17 @@ import java.util.List;
 
 public class GymUserDetails implements UserDetails {
 
-    private final String username;
-    private final String password;
+    private final String  username;
+    private final String  password;
     @Getter
-    private final Role role;
+    private final Role    role;
+    private final boolean accountNonLocked;
 
-    public GymUserDetails(String username, String password, Role role) {
-        this.username = username;
-        this.password = password;
-        this.role = role;
+    public GymUserDetails(String username, String password, Role role, boolean accountNonLocked) {
+        this.username         = username;
+        this.password         = password;
+        this.role             = role;
+        this.accountNonLocked = accountNonLocked;
     }
 
     @Override
@@ -26,33 +28,10 @@ public class GymUserDetails implements UserDetails {
         return List.of(new SimpleGrantedAuthority(role.asAuthority()));
     }
 
-    @Override
-    public String getPassword() {
-        return password;
-    }
-
-    @Override
-    public String getUsername() {
-        return username;
-    }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return true;
-    }
+    @Override public String  getPassword()              { return password; }
+    @Override public String  getUsername()              { return username; }
+    @Override public boolean isAccountNonLocked()       { return accountNonLocked; }
+    @Override public boolean isAccountNonExpired()      { return true; }
+    @Override public boolean isCredentialsNonExpired()  { return true; }
+    @Override public boolean isEnabled()                { return true; }
 }
