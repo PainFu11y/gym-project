@@ -85,14 +85,17 @@ public class SecurityConfig {
 
                 .csrf(AbstractHttpConfigurer::disable)
 
+                .httpBasic(AbstractHttpConfigurer::disable)
+
                 .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 .authenticationProvider(authenticationProvider())
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/api/trainees").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/trainers").permitAll()
+                        .requestMatchers(HttpMethod.GET,  "/api/auth/login").permitAll()
 
                         .requestMatchers(
                                 "/actuator/health",
@@ -111,8 +114,7 @@ public class SecurityConfig {
 
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-                .httpBasic(basic -> basic.realmName("Gym Application"));
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
