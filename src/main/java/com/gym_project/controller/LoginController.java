@@ -56,7 +56,7 @@ public class LoginController {
 
         } catch (LockedException ex) {
             return ResponseEntity.status(HttpStatus.LOCKED)
-                    .body(Map.of("error", "Account locked.  Try again in " + blockDurationSeconds + ".\" seconds."));
+                    .body(Map.of("error", "Account locked.  Try again in " + blockDurationSeconds + " seconds."));
         } catch (BadCredentialsException ex) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "Invalid username or password"));
