@@ -50,7 +50,8 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        config.setAllowedOrigins(List.of("*"));
+        config.setAllowedOriginPatterns(List.of("*"));
+        config.setAllowCredentials(true);
 
         config.setAllowedMethods(List.of(
                 HttpMethod.GET.name(),
