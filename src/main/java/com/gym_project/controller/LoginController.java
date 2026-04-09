@@ -11,8 +11,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -30,30 +33,27 @@ public class LoginController {
     private final LoginService          loginService;
 
     @GetMapping("/login")
-    @SecurityRequirement(name = "basicAuth")
-    @Operation(
-            summary = "Login",
-            description = "Authenticate using HTTP Basic (Authorization: Basic header). " +
-                    "Returns 200 if credentials are valid, 401 otherwise."
-    )
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Login successful"),
-            @ApiResponse(responseCode = "401", description = "Invalid credentials")
-    })
+    @Operation(summary = "Login")
     public ResponseEntity<Map<String, String>> login(
-            @Parameter(required = true) @RequestParam String username,
-            @Parameter(required = true) @RequestParam String password
+            @RequestParam String username,
+            @RequestParam String password
     ) {
-        Authentication auth = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(username, password)
-        );
+        try {
+            Authentication auth = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(username, password)
+            );
+            GymUserDetails userDetails = (GymUserDetails) auth.getPrincipal();
+            String token = jwtService.generateToken(userDetails);
+            loginService.recordLoginSuccess();
+            return ResponseEntity.ok(Map.of("token", token));
 
-        GymUserDetails userDetails = (GymUserDetails) auth.getPrincipal();
-        String token = jwtService.generateToken(userDetails);
-
-        loginService.recordLoginSuccess();
-
-        return ResponseEntity.ok(Map.of("token", token));
+        } catch (LockedException ex) {
+            return ResponseEntity.status(HttpStatus.LOCKED)
+                    .body(Map.of("error", "Account locked. Try again in 5 minutes."));
+        } catch (BadCredentialsException ex) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Invalid username or password"));
+        }
     }
 
     @PutMapping("/change-password")
