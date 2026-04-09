@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -18,10 +19,12 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping(RoutConstants.BASE_URL + RoutConstants.AUTH)
 @Tag(name = "Authentication")
@@ -72,11 +75,12 @@ public class LoginController {
     }
 
     @PostMapping("/logout")
-    @Operation(summary = "Logout")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Logout successful")
-    })
+    @Operation(summary = "Logout", description = "Clears the security context for the current user.")
+    @ApiResponse(responseCode = "200", description = "Logout successful")
     public ResponseEntity<Void> logout() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        SecurityContextHolder.clearContext();
+        log.info("User '{}' logged out", username);
         return ResponseEntity.ok().build();
     }
 }
