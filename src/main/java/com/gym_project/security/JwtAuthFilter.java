@@ -16,7 +16,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -26,6 +25,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtService            jwtService;
     private final GymUserDetailsService userDetailsService;
+    private final TokenBlacklistService tokenBlacklistService;
 
     @Override
     protected void doFilterInternal(
@@ -41,7 +41,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             return;
         }
 
-        String token    = authHeader.substring(BEARER_PREFIX.length());
+        String token = authHeader.substring(BEARER_PREFIX.length());
+
+        if (tokenBlacklistService.isBlacklisted(token)) {
+            log.warn("Rejected blacklisted JWT token");
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String username = null;
 
         try {

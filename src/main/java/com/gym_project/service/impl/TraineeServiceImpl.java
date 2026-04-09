@@ -136,7 +136,7 @@ public class TraineeServiceImpl implements TraineeService {
 
     @Override
     @Transactional
-    @PreAuthorize("hasRole('ROLE_TRAINEE') and #username == authentication.name")
+    @PreAuthorize("#username == authentication.name")
     public void toggleStatus(String username) {
         log.debug("Toggling status for trainee username='{}'", username);
         traineeRepository.toggleStatus(username);

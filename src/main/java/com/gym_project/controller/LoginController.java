@@ -4,6 +4,8 @@ import com.gym_project.constants.RoutConstants;
 import com.gym_project.security.GymUserDetails;
 import com.gym_project.security.JwtService;
 import com.gym_project.security.LoginService;
+import com.gym_project.security.TokenBlacklistService;
+import jakarta.servlet.http.HttpServletRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -35,6 +37,7 @@ public class LoginController {
     private final AuthenticationManager authenticationManager;
     private final JwtService            jwtService;
     private final LoginService          loginService;
+    private final TokenBlacklistService tokenBlacklistService;
 
     @Value("${security.login.block-duration-seconds}")
     private long blockDurationSeconds;
@@ -79,10 +82,16 @@ public class LoginController {
     }
 
     @PostMapping("/logout")
-    @Operation(summary = "Logout", description = "Clears the security context for the current user.")
+    @Operation(summary = "Logout", description = "Invalidates the JWT token and clears the security context.")
     @ApiResponse(responseCode = "200", description = "Logout successful")
-    public ResponseEntity<Void> logout() {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+    public ResponseEntity<Void> logout(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            tokenBlacklistService.blacklist(token, jwtService.getExpirationMs());
+        }
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth != null ? auth.getName() : "unknown";
         SecurityContextHolder.clearContext();
         log.info("User '{}' logged out", username);
         return ResponseEntity.ok().build();

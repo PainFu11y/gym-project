@@ -28,7 +28,6 @@ public class JwtService {
         this.expirationMs = expirationMs;
     }
 
-
     public String generateToken(UserDetails userDetails) {
         Date now    = new Date();
         Date expiry = new Date(now.getTime() + expirationMs);
@@ -46,6 +45,9 @@ public class JwtService {
                 .compact();
     }
 
+    public long getExpirationMs() {
+        return expirationMs;
+    }
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
         try {
@@ -56,7 +58,6 @@ public class JwtService {
             return false;
         }
     }
-
 
     public String extractUsername(String token) {
         return parseClaims(token).getSubject();
