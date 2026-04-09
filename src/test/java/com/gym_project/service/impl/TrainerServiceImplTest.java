@@ -4,7 +4,6 @@ import com.gym_project.actuator.metrics.GymMetrics;
 import com.gym_project.dto.create.request.TrainerCreateRequestDto;
 import com.gym_project.dto.create.response.TrainerCreateResponseDto;
 import com.gym_project.dto.filter.TrainerTrainingFilterDto;
-import com.gym_project.dto.response.TrainerResponseDto;
 import com.gym_project.dto.response.TrainerSummaryDto;
 import com.gym_project.dto.response.TrainingResponseDto;
 import com.gym_project.dto.update.request.TrainerUpdateRequestDto;
@@ -17,8 +16,7 @@ import com.gym_project.mapper.TrainingMapper;
 import com.gym_project.repository.TrainerRepository;
 import com.gym_project.repository.TrainingRepository;
 import com.gym_project.repository.TrainingTypeRepository;
-import com.gym_project.security.AuthContext;
-import com.gym_project.security.Role;
+import com.gym_project.security.LoginService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,28 +32,24 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class TrainerServiceImplTest {
 
-    @Mock
-    private TrainerRepository trainerRepository;
-    @Mock
-    private TrainingRepository trainingRepository;
-    @Mock
-    private TrainingTypeRepository trainingTypeRepository;
-    @Mock
-    private TrainerMapper trainerMapper;
-    @Mock
-    private TrainingMapper trainingMapper;
-    @Mock
-    private GymMetrics gymMetrics;
+    @Mock private TrainerRepository      trainerRepository;
+    @Mock private TrainingRepository     trainingRepository;
+    @Mock private TrainingTypeRepository trainingTypeRepository;
+    @Mock private TrainerMapper          trainerMapper;
+    @Mock private TrainingMapper         trainingMapper;
+    @Mock private GymMetrics             gymMetrics;
+    @Mock private LoginService           loginService;
 
     @InjectMocks
     private TrainerServiceImpl trainerService;
 
-    private Trainer trainer;
+    private Trainer      trainer;
     private TrainingType trainingType;
 
     @BeforeEach
@@ -69,11 +63,12 @@ class TrainerServiceImplTest {
         trainer.setFirstName("John");
         trainer.setLastName("Smith");
         trainer.setUsername("John.Smith");
-        trainer.setPassword("pass123");
+        trainer.setPassword("$2a$12$hashedpassword");
         trainer.setActive(true);
         trainer.setSpecialization(trainingType);
         trainer.setTrainees(new HashSet<>());
     }
+
 
     @Test
     void create_shouldGenerateUsernameAndSaveTrainer() {
@@ -88,11 +83,15 @@ class TrainerServiceImplTest {
         when(trainerRepository.findUsernamesStartingWith("John.Smith")).thenReturn(List.of());
         when(trainingTypeRepository.findById(1L)).thenReturn(Optional.of(trainingType));
         when(trainerMapper.toCreateResponseDto(any(Trainer.class))).thenReturn(responseDto);
+        when(loginService.encodePassword(anyString())).thenReturn("$2a$12$hashedpassword");
 
         TrainerCreateResponseDto result = trainerService.create(dto);
 
         assertThat(result.getUsername()).isEqualTo("John.Smith");
+        assertThat(result.getPassword()).isNotNull();
+        assertThat(result.getPassword()).doesNotStartWith("$2a$");
         verify(trainerRepository).save(any(Trainer.class));
+        verify(loginService).encodePassword(anyString());
     }
 
     @Test
@@ -108,6 +107,7 @@ class TrainerServiceImplTest {
         when(trainerRepository.findUsernamesStartingWith("John.Smith")).thenReturn(List.of("John.Smith"));
         when(trainingTypeRepository.findById(1L)).thenReturn(Optional.of(trainingType));
         when(trainerMapper.toCreateResponseDto(any(Trainer.class))).thenReturn(responseDto);
+        when(loginService.encodePassword(anyString())).thenReturn("$2a$12$hashedpassword");
 
         TrainerCreateResponseDto result = trainerService.create(dto);
 
@@ -130,6 +130,7 @@ class TrainerServiceImplTest {
 
         verify(trainerRepository, never()).save(any());
     }
+
 
 
     @Test
@@ -176,6 +177,7 @@ class TrainerServiceImplTest {
 
         verify(trainerRepository, never()).update(any());
     }
+
 
     @Test
     void getUnassignedActiveTrainers_shouldReturnMappedSummaries() {
@@ -246,15 +248,9 @@ class TrainerServiceImplTest {
     }
 
     @Test
-    void toggleStatus_shouldCallRepository_whenAuthorized() {
-        mockStatic(AuthContext.class);
-        when(AuthContext.getUsername()).thenReturn("John.Smith");
-        when(AuthContext.getRole()).thenReturn(Role.TRAINER);
-
-        doNothing().when(trainerRepository).toggleStatus("John.Smith");
-
+    void toggleStatus_shouldCallRepository() {
+        // @PreAuthorize is bypassed in unit tests (no Spring context)
         trainerService.toggleStatus("John.Smith");
-
         verify(trainerRepository).toggleStatus("John.Smith");
     }
 }
