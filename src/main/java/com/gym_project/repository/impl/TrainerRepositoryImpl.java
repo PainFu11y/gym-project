@@ -45,17 +45,6 @@ public class TrainerRepositoryImpl implements TrainerRepository {
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<Trainer> findByUsernameAndPassword(String username, String password) {
-        return entityManager.createQuery(
-                        "SELECT t FROM Trainer t WHERE t.username = :username AND t.password = :password", Trainer.class)
-                .setParameter("username", username)
-                .setParameter("password", password)
-                .getResultStream()
-                .findFirst();
-    }
-
-    @Override
-    @Transactional(readOnly = true)
     public Optional<Trainer> findByUsername(String username) {
         return entityManager.createQuery(
                         "SELECT t FROM Trainer t WHERE t.username = :username", Trainer.class)

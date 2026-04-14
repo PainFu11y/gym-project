@@ -7,6 +7,7 @@ import com.gym_project.exception.InvalidCredentialsException;
 import com.gym_project.repository.TraineeRepository;
 import com.gym_project.repository.TrainerRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -17,67 +18,55 @@ public class LoginService {
 
     private final TrainerRepository trainerRepository;
     private final TraineeRepository traineeRepository;
-    private final AuthService authService;
-
-    private final GymMetrics gymMetrics;
+    private final GymMetrics        gymMetrics;
+    private final PasswordEncoder   passwordEncoder;
 
     public LoginService(
             TrainerRepository trainerRepository,
             TraineeRepository traineeRepository,
-            AuthService authService, GymMetrics gymMetrics
+            GymMetrics gymMetrics,
+            PasswordEncoder passwordEncoder
     ) {
         this.trainerRepository = trainerRepository;
         this.traineeRepository = traineeRepository;
-        this.authService = authService;
-        this.gymMetrics = gymMetrics;
+        this.gymMetrics        = gymMetrics;
+        this.passwordEncoder   = passwordEncoder;
     }
 
-    public void login(String username, String password) {
-        log.debug("Login attempt for username='{}'", username);
+   public String encodePassword(String rawPassword) {
+        return passwordEncoder.encode(rawPassword);
+    }
 
-        Optional<Trainer> trainer = trainerRepository.findByUsernameAndPassword(username, password);
-
-        if (trainer.isPresent()) {
-            authService.authenticate(username, Role.TRAINER);
-            log.info("Login successful: username='{}', role=TRAINER", username);
-            gymMetrics.recordLoginSuccess();
-            return;
-        }
-
-        Optional<Trainee> trainee = traineeRepository.findByUsername(username);
-
-        if (trainee.isPresent() && trainee.get().getPassword().equals(password)) {
-            authService.authenticate(username, Role.TRAINEE);
-            log.info("Login successful: username='{}', role=TRAINEE", username);
-            gymMetrics.recordLoginSuccess();
-            return;
-        }
-
-        log.warn("Login failed - invalid credentials for username='{}'", username);
-        gymMetrics.recordLoginFailure();
-        throw new InvalidCredentialsException();
+    public void recordLoginSuccess() {
+        gymMetrics.recordLoginSuccess();
     }
 
     public void changePassword(String username, String oldPassword, String newPassword) {
         log.debug("Password change attempt for username='{}'", username);
 
-        Optional<Trainer> trainer = trainerRepository.findByUsernameAndPassword(username, oldPassword);
-
+        Optional<Trainer> trainer = trainerRepository.findByUsername(username);
         if (trainer.isPresent()) {
-            trainerRepository.changePassword(username, newPassword);
+            if (!passwordEncoder.matches(oldPassword, trainer.get().getPassword())) {
+                log.warn("Password change failed - wrong old password for trainer username='{}'", username);
+                throw new InvalidCredentialsException();
+            }
+            trainerRepository.changePassword(username, passwordEncoder.encode(newPassword));
             log.info("Password changed for trainer username='{}'", username);
             return;
         }
 
         Optional<Trainee> trainee = traineeRepository.findByUsername(username);
-
-        if (trainee.isPresent() && trainee.get().getPassword().equals(oldPassword)) {
-            traineeRepository.changePassword(username, newPassword);
+        if (trainee.isPresent()) {
+            if (!passwordEncoder.matches(oldPassword, trainee.get().getPassword())) {
+                log.warn("Password change failed - wrong old password for trainee username='{}'", username);
+                throw new InvalidCredentialsException();
+            }
+            traineeRepository.changePassword(username, passwordEncoder.encode(newPassword));
             log.info("Password changed for trainee username='{}'", username);
             return;
         }
 
-        log.warn("Password change failed - invalid credentials for username='{}'", username);
+        log.warn("Password change failed - user not found for username='{}'", username);
         throw new InvalidCredentialsException();
     }
 }

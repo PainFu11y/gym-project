@@ -3,7 +3,10 @@ package com.gym_project.exception;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -16,13 +19,11 @@ public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<ErrorResponseDto> handleNotFound(EntityNotFoundException ex) {
         log.warn("Entity not found: {}", ex.getMessage());
         return build(ex.getStatus(), ex.getMessage());
     }
-
 
     @ExceptionHandler(InvalidCredentialsException.class)
     public ResponseEntity<ErrorResponseDto> handleInvalidCredentials(InvalidCredentialsException ex) {
@@ -30,10 +31,8 @@ public class GlobalExceptionHandler {
         return build(ex.getStatus(), ex.getMessage());
     }
 
-
     @ExceptionHandler(UnauthorizedException.class)
-    public ResponseEntity<ErrorResponseDto> handleNotAuthenticated(
-            UnauthorizedException ex) {
+    public ResponseEntity<ErrorResponseDto> handleNotAuthenticated(UnauthorizedException ex) {
         log.warn("Unauthenticated access attempt");
         return build(401, "Authentication required — please log in first");
     }
@@ -50,7 +49,17 @@ public class GlobalExceptionHandler {
         return build(403, "Access denied — you are not allowed to perform this action");
     }
 
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ErrorResponseDto> handleBadCredentials(BadCredentialsException ex) {
+        log.warn("Bad credentials: {}", ex.getMessage());
+        return build(HttpStatus.UNAUTHORIZED.value(), "Invalid username or password");
+    }
 
+    @ExceptionHandler(LockedException.class)
+    public ResponseEntity<ErrorResponseDto> handleLocked(LockedException ex) {
+        log.warn("Account locked: {}", ex.getMessage());
+        return build(HttpStatus.LOCKED.value(), "Account locked due to too many failed attempts. Try again in 5 minutes.");
+    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponseDto> handleValidation(MethodArgumentNotValidException ex) {
@@ -73,7 +82,6 @@ public class GlobalExceptionHandler {
         log.warn("Application error [{}]: {}", ex.getStatus(), ex.getMessage());
         return build(ex.getStatus(), ex.getMessage());
     }
-
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponseDto> handleGeneric(Exception ex) {

@@ -13,18 +13,17 @@ import com.gym_project.dto.update.response.TrainerUpdateResponseDto;
 import com.gym_project.entity.Trainer;
 import com.gym_project.entity.TrainingType;
 import com.gym_project.exception.EntityNotFoundException;
-import com.gym_project.exception.ForbiddenOperationException;
 import com.gym_project.mapper.TrainerMapper;
 import com.gym_project.mapper.TrainingMapper;
 import com.gym_project.repository.TrainerRepository;
 import com.gym_project.repository.TrainingRepository;
 import com.gym_project.repository.TrainingTypeRepository;
-import com.gym_project.security.AuthContext;
+import com.gym_project.security.LoginService;
 import com.gym_project.service.TrainerService;
 import com.gym_project.utils.PasswordGenerator;
 import com.gym_project.utils.UsernameGenerator;
 import lombok.extern.slf4j.Slf4j;
-import com.gym_project.security.PreAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,22 +38,25 @@ public class TrainerServiceImpl implements TrainerService {
     private final TrainingTypeRepository trainingTypeRepository;
     private final TrainerMapper trainerMapper;
     private final TrainingMapper trainingMapper;
-
     private final GymMetrics gymMetrics;
+    private final LoginService loginService;
 
     public TrainerServiceImpl(
             TrainerRepository trainerRepository,
             TrainerMapper trainerMapper,
             TrainingMapper trainingMapper,
             TrainingTypeRepository trainingTypeRepository,
-            TrainingRepository trainingRepository, GymMetrics gymMetrics
+            TrainingRepository trainingRepository,
+            GymMetrics gymMetrics,
+            LoginService loginService
     ) {
-        this.trainerRepository = trainerRepository;
-        this.trainerMapper = trainerMapper;
-        this.trainingMapper = trainingMapper;
+        this.trainerRepository      = trainerRepository;
+        this.trainerMapper          = trainerMapper;
+        this.trainingMapper         = trainingMapper;
         this.trainingTypeRepository = trainingTypeRepository;
-        this.trainingRepository = trainingRepository;
-        this.gymMetrics = gymMetrics;
+        this.trainingRepository     = trainingRepository;
+        this.gymMetrics             = gymMetrics;
+        this.loginService           = loginService;
     }
 
     @Override
@@ -78,13 +80,17 @@ public class TrainerServiceImpl implements TrainerService {
         trainer.setSpecialization(trainingType);
         trainer.setUsername(UsernameGenerator.generate(
                 trainer.getFirstName(), trainer.getLastName(), existingUsernames));
-        trainer.setPassword(PasswordGenerator.generate());
+
+        String rawPassword = PasswordGenerator.generate();
+        trainer.setPassword(loginService.encodePassword(rawPassword));
 
         trainerRepository.save(trainer);
 
         log.info("Trainer created with username='{}'", trainer.getUsername());
         gymMetrics.recordTrainerRegistration();
-        return trainerMapper.toCreateResponseDto(trainer);
+        TrainerCreateResponseDto createResponseDto = trainerMapper.toCreateResponseDto(trainer);
+        createResponseDto.setPassword(rawPassword);
+        return createResponseDto;
     }
 
     @Override
@@ -125,7 +131,7 @@ public class TrainerServiceImpl implements TrainerService {
 
     @Override
     @Transactional(readOnly = true)
-    @PreAuthorize("hasRole('TRAINER') or (hasRole('TRAINEE') and #username == authentication.name)")
+    @PreAuthorize("hasRole('ROLE_TRAINER') or (hasRole('ROLE_TRAINEE') and #username == authentication.name)")
     public List<TrainerSummaryDto> getUnassignedActiveTrainersByTraineeUsername(String username) {
         log.debug("Fetching unassigned active trainers for trainee username='{}'", username);
 
@@ -166,12 +172,8 @@ public class TrainerServiceImpl implements TrainerService {
 
     @Override
     @Transactional
-    @PreAuthorize("#username == authentication.name")
+    @PreAuthorize("hasRole('ROLE_TRAINER') and #username == authentication.name")
     public void toggleStatus(String username) {
-        String authenticatedUser = AuthContext.getUsername();
-        if(!authenticatedUser.equals(username) || !AuthContext.getRole().toString().equals("TRAINER")){
-            throw new ForbiddenOperationException("The user is authenticated but not authorized to perform that action on another user's resource.");
-        }
         log.debug("Toggling status for trainer username='{}'", username);
         trainerRepository.toggleStatus(username);
         log.info("Trainer status toggled: username='{}'", username);

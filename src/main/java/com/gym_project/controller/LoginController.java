@@ -1,61 +1,76 @@
 package com.gym_project.controller;
 
 import com.gym_project.constants.RoutConstants;
-import com.gym_project.security.AuthContext;
-import com.gym_project.security.AuthService;
+import com.gym_project.security.GymUserDetails;
+import com.gym_project.security.JwtService;
 import com.gym_project.security.LoginService;
+import com.gym_project.security.TokenBlacklistService;
+import jakarta.servlet.http.HttpServletRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.LockedException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
+import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping(RoutConstants.BASE_URL + RoutConstants.AUTH)
 @Tag(name = "Authentication")
+@RequiredArgsConstructor
 public class LoginController {
 
-    private static final String SESSION_USERNAME = "AUTH_USERNAME";
-    private static final String SESSION_ROLE     = "AUTH_ROLE";
+    private final AuthenticationManager authenticationManager;
+    private final JwtService            jwtService;
+    private final LoginService          loginService;
+    private final TokenBlacklistService tokenBlacklistService;
 
-    private final LoginService loginService;
-    private final AuthService authService;
-
-    public LoginController(LoginService loginService, AuthService authService) {
-        this.loginService = loginService;
-        this.authService = authService;
-    }
+    @Value("${security.login.block-duration-seconds}")
+    private long blockDurationSeconds;
 
     @GetMapping("/login")
     @Operation(summary = "Login")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Login successful"),
-            @ApiResponse(responseCode = "401", description = "Invalid username or password")
-    })
-    public ResponseEntity<Void> login(
-            @Parameter(required = true) @RequestParam String username,
-            @Parameter(required = true) @RequestParam String password,
-            HttpServletRequest request
+    public ResponseEntity<Map<String, String>> login(
+            @RequestParam String username,
+            @RequestParam String password
     ) {
-        loginService.login(username, password);
+        try {
+            Authentication auth = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(username, password)
+            );
+            GymUserDetails userDetails = (GymUserDetails) auth.getPrincipal();
+            String token = jwtService.generateToken(userDetails);
+            loginService.recordLoginSuccess();
+            return ResponseEntity.ok(Map.of("token", token));
 
-        HttpSession session = request.getSession(true);
-        session.setAttribute(SESSION_USERNAME, AuthContext.getUsername());
-        session.setAttribute(SESSION_ROLE,     AuthContext.getRole());
-
-        return ResponseEntity.ok().build();
+        } catch (LockedException ex) {
+            return ResponseEntity.status(HttpStatus.LOCKED)
+                    .body(Map.of("error", "Account locked.  Try again in " + blockDurationSeconds + " seconds."));
+        } catch (BadCredentialsException ex) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Invalid username or password"));
+        }
     }
 
     @PutMapping("/change-password")
     @Operation(summary = "Change password")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Password changed successfully"),
-            @ApiResponse(responseCode = "401", description = "Invalid username or old password")
+            @ApiResponse(responseCode = "200", description = "Password changed — re-authentication required"),
+            @ApiResponse(responseCode = "401", description = "Invalid old password or not authenticated")
     })
     public ResponseEntity<Void> changePassword(
             @Parameter(required = true) @RequestParam String username,
@@ -67,16 +82,18 @@ public class LoginController {
     }
 
     @PostMapping("/logout")
-    @Operation(summary = "Logout")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Logout successful")
-    })
+    @Operation(summary = "Logout", description = "Invalidates the JWT token and clears the security context.")
+    @ApiResponse(responseCode = "200", description = "Logout successful")
     public ResponseEntity<Void> logout(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        if (session != null) {
-            session.invalidate();
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            tokenBlacklistService.blacklist(token, jwtService.getExpirationMs());
         }
-        authService.logout();
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth != null ? auth.getName() : "unknown";
+        SecurityContextHolder.clearContext();
+        log.info("User '{}' logged out", username);
         return ResponseEntity.ok().build();
     }
 }

@@ -11,7 +11,7 @@ import com.gym_project.repository.TrainerRepository;
 import com.gym_project.repository.TrainingRepository;
 import com.gym_project.service.TrainingService;
 import lombok.extern.slf4j.Slf4j;
-import com.gym_project.security.PreAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;

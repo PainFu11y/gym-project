@@ -12,23 +12,23 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class LoginServiceTest {
 
-    @Mock
-    private TrainerRepository trainerRepository;
-    @Mock
-    private TraineeRepository traineeRepository;
-    @Mock
-    private AuthService authService;
-    @Mock
-    private GymMetrics gymMetrics;
+    @Mock private TrainerRepository trainerRepository;
+    @Mock private TraineeRepository traineeRepository;
+    @Mock private GymMetrics        gymMetrics;
+    @Mock private PasswordEncoder   passwordEncoder;
 
     @InjectMocks
     private LoginService loginService;
@@ -38,106 +38,73 @@ class LoginServiceTest {
 
     @BeforeEach
     void setUp() {
-        trainee = new Trainee();
-        trainee.setUsername("Jane.Doe");
-        trainee.setPassword("traineePass");
-
         trainer = new Trainer();
         trainer.setUsername("John.Smith");
-        trainer.setPassword("trainerPass");
-    }
+        trainer.setPassword("$2a$12$hashedTrainerPass");
 
-
-    @Test
-    void login_shouldAuthenticateAsTrainer_whenTrainerCredentialsMatch() {
-        when(trainerRepository.findByUsernameAndPassword("John.Smith", "trainerPass"))
-                .thenReturn(Optional.of(trainer));
-
-        loginService.login("John.Smith", "trainerPass");
-
-        verify(authService).authenticate("John.Smith", Role.TRAINER);
-        verifyNoInteractions(traineeRepository);
+        trainee = new Trainee();
+        trainee.setUsername("Jane.Doe");
+        trainee.setPassword("$2a$12$hashedTraineePass");
     }
 
     @Test
-    void login_shouldAuthenticateAsTrainee_whenTraineeCredentialsMatch() {
-        when(trainerRepository.findByUsernameAndPassword("Jane.Doe", "traineePass"))
-                .thenReturn(Optional.empty());
-        when(traineeRepository.findByUsername("Jane.Doe")).thenReturn(Optional.of(trainee));
+    void encodePassword_shouldDelegateToPasswordEncoder() {
+        when(passwordEncoder.encode("rawPass")).thenReturn("$2a$12$encodedHash");
 
-        loginService.login("Jane.Doe", "traineePass");
+        String result = loginService.encodePassword("rawPass");
 
-        verify(authService).authenticate("Jane.Doe", Role.TRAINEE);
+        assertThat(result).isEqualTo("$2a$12$encodedHash");
+        verify(passwordEncoder).encode("rawPass");
     }
 
     @Test
-    void login_shouldThrowInvalidCredentialsException_whenTraineePasswordWrong() {
-        when(trainerRepository.findByUsernameAndPassword("Jane.Doe", "wrongPass"))
-                .thenReturn(Optional.empty());
-        when(traineeRepository.findByUsername("Jane.Doe")).thenReturn(Optional.of(trainee));
-
-        assertThatThrownBy(() -> loginService.login("Jane.Doe", "wrongPass"))
-                .isInstanceOf(InvalidCredentialsException.class);
-
-        verify(authService, never()).authenticate(any(), any());
+    void recordLoginSuccess_shouldRecordMetric() {
+        loginService.recordLoginSuccess();
+        verify(gymMetrics).recordLoginSuccess();
     }
 
-    @Test
-    void login_shouldThrowInvalidCredentialsException_whenUserNotFound() {
-        when(trainerRepository.findByUsernameAndPassword("ghost", "any"))
-                .thenReturn(Optional.empty());
-        when(traineeRepository.findByUsername("ghost")).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> loginService.login("ghost", "any"))
-                .isInstanceOf(InvalidCredentialsException.class);
-
-        verify(authService, never()).authenticate(any(), any());
-    }
-
-    @Test
-    void login_shouldCheckTraineeLast_whenTrainerNotFound() {
-        when(trainerRepository.findByUsernameAndPassword("Jane.Doe", "traineePass"))
-                .thenReturn(Optional.empty());
-        when(traineeRepository.findByUsername("Jane.Doe")).thenReturn(Optional.of(trainee));
-
-        loginService.login("Jane.Doe", "traineePass");
-
-        verify(trainerRepository).findByUsernameAndPassword("Jane.Doe", "traineePass");
-        verify(traineeRepository).findByUsername("Jane.Doe");
-    }
 
     @Test
     void changePassword_shouldUpdatePassword_forTrainer() {
-        when(trainerRepository.findByUsernameAndPassword("John.Smith", "oldPass"))
-                .thenReturn(Optional.of(trainer));
+        when(trainerRepository.findByUsername("John.Smith")).thenReturn(Optional.of(trainer));
+        when(passwordEncoder.matches("oldPass", "$2a$12$hashedTrainerPass")).thenReturn(true);
+        when(passwordEncoder.encode("newPass")).thenReturn("$2a$12$newHashedPass");
 
         loginService.changePassword("John.Smith", "oldPass", "newPass");
 
-        verify(trainerRepository).changePassword("John.Smith", "newPass");
+        verify(trainerRepository).changePassword("John.Smith", "$2a$12$newHashedPass");
         verifyNoInteractions(traineeRepository);
     }
 
     @Test
-    void changePassword_shouldUpdatePassword_forTrainee() {
-        trainee.setPassword("oldPass");
+    void changePassword_shouldThrowInvalidCredentialsException_whenTrainerOldPasswordWrong() {
+        when(trainerRepository.findByUsername("John.Smith")).thenReturn(Optional.of(trainer));
+        when(passwordEncoder.matches("wrongOld", "$2a$12$hashedTrainerPass")).thenReturn(false);
 
-        when(trainerRepository.findByUsernameAndPassword("Jane.Doe", "oldPass"))
-                .thenReturn(Optional.empty());
-        when(traineeRepository.findByUsername("Jane.Doe")).thenReturn(Optional.of(trainee));
+        assertThatThrownBy(() -> loginService.changePassword("John.Smith", "wrongOld", "newPass"))
+                .isInstanceOf(InvalidCredentialsException.class);
 
-        loginService.changePassword("Jane.Doe", "oldPass", "newPass");
-
-        verify(traineeRepository).changePassword("Jane.Doe", "newPass");
         verify(trainerRepository, never()).changePassword(any(), any());
     }
 
     @Test
-    void changePassword_shouldThrowInvalidCredentialsException_whenOldPasswordWrong() {
-        trainee.setPassword("correctPass");
-
-        when(trainerRepository.findByUsernameAndPassword("Jane.Doe", "wrongOld"))
-                .thenReturn(Optional.empty());
+    void changePassword_shouldUpdatePassword_forTrainee() {
+        when(trainerRepository.findByUsername("Jane.Doe")).thenReturn(Optional.empty());
         when(traineeRepository.findByUsername("Jane.Doe")).thenReturn(Optional.of(trainee));
+        when(passwordEncoder.matches("oldPass", "$2a$12$hashedTraineePass")).thenReturn(true);
+        when(passwordEncoder.encode("newPass")).thenReturn("$2a$12$newHashedPass");
+
+        loginService.changePassword("Jane.Doe", "oldPass", "newPass");
+
+        verify(traineeRepository).changePassword("Jane.Doe", "$2a$12$newHashedPass");
+        verify(trainerRepository, never()).changePassword(any(), any());
+    }
+
+    @Test
+    void changePassword_shouldThrowInvalidCredentialsException_whenTraineeOldPasswordWrong() {
+        when(trainerRepository.findByUsername("Jane.Doe")).thenReturn(Optional.empty());
+        when(traineeRepository.findByUsername("Jane.Doe")).thenReturn(Optional.of(trainee));
+        when(passwordEncoder.matches("wrongOld", "$2a$12$hashedTraineePass")).thenReturn(false);
 
         assertThatThrownBy(() -> loginService.changePassword("Jane.Doe", "wrongOld", "newPass"))
                 .isInstanceOf(InvalidCredentialsException.class);
@@ -147,8 +114,7 @@ class LoginServiceTest {
 
     @Test
     void changePassword_shouldThrowInvalidCredentialsException_whenUserNotFound() {
-        when(trainerRepository.findByUsernameAndPassword("ghost", "any"))
-                .thenReturn(Optional.empty());
+        when(trainerRepository.findByUsername("ghost")).thenReturn(Optional.empty());
         when(traineeRepository.findByUsername("ghost")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> loginService.changePassword("ghost", "any", "new"))
@@ -156,5 +122,18 @@ class LoginServiceTest {
 
         verify(trainerRepository, never()).changePassword(any(), any());
         verify(traineeRepository, never()).changePassword(any(), any());
+    }
+
+    @Test
+    void changePassword_shouldCheckTrainerFirst_thenTrainee() {
+        when(trainerRepository.findByUsername("Jane.Doe")).thenReturn(Optional.empty());
+        when(traineeRepository.findByUsername("Jane.Doe")).thenReturn(Optional.of(trainee));
+        when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
+        when(passwordEncoder.encode(anyString())).thenReturn("$2a$12$newHash");
+
+        loginService.changePassword("Jane.Doe", "oldPass", "newPass");
+
+        verify(trainerRepository).findByUsername("Jane.Doe");
+        verify(traineeRepository).findByUsername("Jane.Doe");
     }
 }
