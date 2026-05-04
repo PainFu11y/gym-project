@@ -67,11 +67,13 @@ public interface TraineeMapper {
     @Mapping(target = "password", ignore = true)
     @Mapping(target = "active", ignore = true)
     @Mapping(target = "trainers", ignore = true)
+    @Mapping(target = "trainings", ignore = true)
     Trainee toEntity(TraineeCreateRequestDto dto);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "password", ignore = true)
     @Mapping(target = "trainers", ignore = true)
+    @Mapping(target = "trainings", ignore = true)
     @Mapping(target = "username", source = "username")
     @Mapping(target = "firstName", source = "firstName")
     @Mapping(target = "lastName", source = "lastName")

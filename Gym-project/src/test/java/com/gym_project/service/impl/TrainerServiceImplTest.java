@@ -249,7 +249,6 @@ class TrainerServiceImplTest {
 
     @Test
     void toggleStatus_shouldCallRepository() {
-        // @PreAuthorize is bypassed in unit tests (no Spring context)
         trainerService.toggleStatus("John.Smith");
         verify(trainerRepository).toggleStatus("John.Smith");
     }
