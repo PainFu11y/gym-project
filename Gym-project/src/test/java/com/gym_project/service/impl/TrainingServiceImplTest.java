@@ -102,7 +102,6 @@ class TrainingServiceImplTest {
         SecurityContextHolder.getContext().setAuthentication(auth);
     }
 
-    // ─── create ──────────────────────────────────────────────────────────────
 
     @Test
     void create_shouldSaveTrainingAndLinkTraineeToTrainer() {
@@ -213,7 +212,6 @@ class TrainingServiceImplTest {
         assertThat(trainer.getTrainees()).doesNotContain(trainee);
     }
 
-    // ─── delete ──────────────────────────────────────────────────────────────
 
     @Test
     void delete_shouldDeleteTrainingAndCallReportServiceWithDeleteAction() {

@@ -21,7 +21,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
-//TODO send coverage of tests
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
