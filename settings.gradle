@@ -1,0 +1,5 @@
+rootProject.name = 'gym-microservices'
+
+include 'Gym-project'
+include 'gym-report-service'
+include 'gym-eureka-server'
