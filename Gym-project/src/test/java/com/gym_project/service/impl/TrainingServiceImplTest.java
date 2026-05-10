@@ -1,8 +1,6 @@
 package com.gym_project.service.impl;
 
 import com.gym_project.actuator.metrics.GymMetrics;
-import com.gym_project.client.ReportServiceClient;
-import com.gym_project.client.ReportWorkloadRequest;
 import com.gym_project.dto.create.request.TrainingCreateRequestDto;
 import com.gym_project.entity.Trainee;
 import com.gym_project.entity.Trainer;
@@ -10,6 +8,8 @@ import com.gym_project.entity.Training;
 import com.gym_project.entity.TrainingType;
 import com.gym_project.exception.EntityNotFoundException;
 import com.gym_project.exception.ForbiddenOperationException;
+import com.gym_project.messaging.WorkloadMessage;
+import com.gym_project.messaging.WorkloadMessageProducer;
 import com.gym_project.repository.TraineeRepository;
 import com.gym_project.repository.TrainerRepository;
 import com.gym_project.repository.TrainingRepository;
@@ -37,11 +37,11 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class TrainingServiceImplTest {
 
-    @Mock private TrainingRepository  trainingRepository;
-    @Mock private TrainerRepository   trainerRepository;
-    @Mock private TraineeRepository   traineeRepository;
-    @Mock private ReportServiceClient reportServiceClient;
-    @Mock private GymMetrics          gymMetrics;
+    @Mock private TrainingRepository      trainingRepository;
+    @Mock private TrainerRepository       trainerRepository;
+    @Mock private TraineeRepository       traineeRepository;
+    @Mock private WorkloadMessageProducer workloadProducer;
+    @Mock private GymMetrics              gymMetrics;
 
     @InjectMocks
     private TrainingServiceImpl trainingService;
@@ -137,42 +137,41 @@ class TrainingServiceImplTest {
     }
 
     @Test
-    void create_shouldCallReportServiceWithAddAction() {
+    void create_shouldSendWorkloadMessageWithAddAction() {
         when(traineeRepository.findByUsername("Jane.Doe")).thenReturn(Optional.of(trainee));
         when(trainerRepository.findByUsername("John.Smith")).thenReturn(Optional.of(trainer));
 
         trainingService.create(dto);
 
-        ArgumentCaptor<ReportWorkloadRequest> captor =
-                ArgumentCaptor.forClass(ReportWorkloadRequest.class);
-        verify(reportServiceClient).sendWorkload(captor.capture(), any());
+        ArgumentCaptor<WorkloadMessage> captor = ArgumentCaptor.forClass(WorkloadMessage.class);
+        verify(workloadProducer).send(captor.capture());
 
-        ReportWorkloadRequest sent = captor.getValue();
-        assertThat(sent.getActionType()).isEqualTo(ReportWorkloadRequest.ActionType.ADD);
+        WorkloadMessage sent = captor.getValue();
+        assertThat(sent.getActionType()).isEqualTo(WorkloadMessage.ActionType.ADD);
         assertThat(sent.getTrainerUsername()).isEqualTo("John.Smith");
         assertThat(sent.getTrainingDate()).isEqualTo(LocalDate.of(2025, 4, 15));
         assertThat(sent.getTrainingDuration()).isEqualTo(60);
     }
 
     @Test
-    void create_shouldNotCallReportService_whenTraineeNotFound() {
+    void create_shouldNotSendWorkloadMessage_whenTraineeNotFound() {
         when(traineeRepository.findByUsername("Jane.Doe")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> trainingService.create(dto))
                 .isInstanceOf(EntityNotFoundException.class);
 
-        verifyNoInteractions(reportServiceClient);
+        verifyNoInteractions(workloadProducer);
     }
 
     @Test
-    void create_shouldNotCallReportService_whenTrainerNotFound() {
+    void create_shouldNotSendWorkloadMessage_whenTrainerNotFound() {
         when(traineeRepository.findByUsername("Jane.Doe")).thenReturn(Optional.of(trainee));
         when(trainerRepository.findByUsername("John.Smith")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> trainingService.create(dto))
                 .isInstanceOf(EntityNotFoundException.class);
 
-        verifyNoInteractions(reportServiceClient);
+        verifyNoInteractions(workloadProducer);
     }
 
     @Test
@@ -214,7 +213,7 @@ class TrainingServiceImplTest {
 
 
     @Test
-    void delete_shouldDeleteTrainingAndCallReportServiceWithDeleteAction() {
+    void delete_shouldDeleteTrainingAndSendWorkloadMessageWithDeleteAction() {
         setAuthenticatedUser("John.Smith");
         when(trainingRepository.findById(10L)).thenReturn(Optional.of(training));
 
@@ -222,12 +221,11 @@ class TrainingServiceImplTest {
 
         verify(trainingRepository).delete(10L);
 
-        ArgumentCaptor<ReportWorkloadRequest> captor =
-                ArgumentCaptor.forClass(ReportWorkloadRequest.class);
-        verify(reportServiceClient).sendWorkload(captor.capture(), any());
+        ArgumentCaptor<WorkloadMessage> captor = ArgumentCaptor.forClass(WorkloadMessage.class);
+        verify(workloadProducer).send(captor.capture());
 
-        ReportWorkloadRequest sent = captor.getValue();
-        assertThat(sent.getActionType()).isEqualTo(ReportWorkloadRequest.ActionType.DELETE);
+        WorkloadMessage sent = captor.getValue();
+        assertThat(sent.getActionType()).isEqualTo(WorkloadMessage.ActionType.DELETE);
         assertThat(sent.getTrainerUsername()).isEqualTo("John.Smith");
         assertThat(sent.getTrainingDate()).isEqualTo(LocalDate.of(2025, 4, 15));
         assertThat(sent.getTrainingDuration()).isEqualTo(60);
@@ -243,7 +241,7 @@ class TrainingServiceImplTest {
                 .hasMessageContaining("999");
 
         verify(trainingRepository, never()).delete(any());
-        verifyNoInteractions(reportServiceClient);
+        verifyNoInteractions(workloadProducer);
     }
 
     @Test
@@ -255,32 +253,31 @@ class TrainingServiceImplTest {
                 .isInstanceOf(ForbiddenOperationException.class);
 
         verify(trainingRepository, never()).delete(any());
-        verifyNoInteractions(reportServiceClient);
+        verifyNoInteractions(workloadProducer);
     }
 
     @Test
-    void delete_shouldNotCallReportService_whenTrainingNotFound() {
+    void delete_shouldNotSendWorkloadMessage_whenTrainingNotFound() {
         setAuthenticatedUser("John.Smith");
         when(trainingRepository.findById(999L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> trainingService.delete(999L))
                 .isInstanceOf(EntityNotFoundException.class);
 
-        verifyNoInteractions(reportServiceClient);
+        verifyNoInteractions(workloadProducer);
     }
 
     @Test
-    void delete_shouldPassCorrectTrainerInfoToReportService() {
+    void delete_shouldPassCorrectTrainerInfoInWorkloadMessage() {
         setAuthenticatedUser("John.Smith");
         when(trainingRepository.findById(10L)).thenReturn(Optional.of(training));
 
         trainingService.delete(10L);
 
-        ArgumentCaptor<ReportWorkloadRequest> captor =
-                ArgumentCaptor.forClass(ReportWorkloadRequest.class);
-        verify(reportServiceClient).sendWorkload(captor.capture(), any());
+        ArgumentCaptor<WorkloadMessage> captor = ArgumentCaptor.forClass(WorkloadMessage.class);
+        verify(workloadProducer).send(captor.capture());
 
-        ReportWorkloadRequest sent = captor.getValue();
+        WorkloadMessage sent = captor.getValue();
         assertThat(sent.getTrainerFirstName()).isEqualTo("John");
         assertThat(sent.getTrainerLastName()).isEqualTo("Smith");
         assertThat(sent.isActive()).isTrue();

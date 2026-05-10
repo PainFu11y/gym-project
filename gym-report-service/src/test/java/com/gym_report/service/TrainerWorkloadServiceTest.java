@@ -91,7 +91,6 @@ class TrainerWorkloadServiceTest {
     void processWorkload_ADD_shouldUpdateTrainerPersonalInfo() {
         workloadService.processWorkload(buildDto(2025, 4, 60, TrainerWorkloadRequestDto.ActionType.ADD), TX_ID);
 
-        // Second call with updated info
         TrainerWorkloadRequestDto updated = buildDto(2025, 5, 30, TrainerWorkloadRequestDto.ActionType.ADD);
         updated.setTrainerFirstName("Jonathan");
         updated.setIsActive(false);
