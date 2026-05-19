@@ -13,10 +13,13 @@ import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
 import org.springframework.jms.support.converter.MappingJackson2MessageConverter;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.converter.MessageType;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.ErrorHandler;
 
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Configuration
 @EnableJms
 public class JmsConfig {
@@ -72,6 +75,13 @@ public class JmsConfig {
         factory.setMessageConverter(jacksonJmsMessageConverter());
         factory.setSessionAcknowledgeMode(jakarta.jms.Session.CLIENT_ACKNOWLEDGE);
         factory.setConcurrency("1-5");
+        factory.setErrorHandler(jmsErrorHandler());
         return factory;
+    }
+
+    @Bean
+    public ErrorHandler jmsErrorHandler() {
+        return t -> log.error("JMS listener error (message will be redelivered/DLQ'd): {}",
+                t.getCause() != null ? t.getCause().getMessage() : t.getMessage());
     }
 }

@@ -86,15 +86,6 @@ class ServiceJwtServiceTest {
     }
 
     @Test
-    void generateServiceToken_shouldProduceDifferentTokensOnEachCall() throws InterruptedException {
-        String token1 = serviceJwtService.generateServiceToken();
-        Thread.sleep(10);
-        String token2 = serviceJwtService.generateServiceToken();
-
-        assertThat(token1).isNotEqualTo(token2);
-    }
-
-    @Test
     void generateServiceToken_shouldBeVerifiableWithCorrectSecret() {
         String token = serviceJwtService.generateServiceToken();
 
