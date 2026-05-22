@@ -32,6 +32,9 @@ dependencies {
     // Swagger / OpenAPI
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
 
+    // MongoDB
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+
     // ActiveMQ
     implementation 'org.springframework.boot:spring-boot-starter-activemq'
     implementation 'org.springframework:spring-messaging'
