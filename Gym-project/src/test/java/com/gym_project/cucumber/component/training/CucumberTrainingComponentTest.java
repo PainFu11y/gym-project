@@ -10,5 +10,7 @@ import org.junit.platform.suite.api.Suite;
 @SelectClasspathResource("features/component/training")
 @ConfigurationParameter(key = "cucumber.glue",
         value = "com.gym_project.cucumber.component.training")
+@ConfigurationParameter(key = "cucumber.plugin",
+        value = "pretty,html:build/cucumber-reports/gym-project-training-cucumber.html,json:build/cucumber-reports/gym-project-training-cucumber.json")
 public class CucumberTrainingComponentTest {
 }

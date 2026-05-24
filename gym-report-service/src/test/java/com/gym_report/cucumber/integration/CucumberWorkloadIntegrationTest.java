@@ -10,5 +10,7 @@ import org.junit.platform.suite.api.Suite;
 @SelectClasspathResource("features/integration")
 @ConfigurationParameter(key = "cucumber.glue",
         value = "com.gym_report.cucumber.integration")
+@ConfigurationParameter(key = "cucumber.plugin",
+        value = "pretty,html:build/cucumber-reports/gym-report-integration-cucumber.html,json:build/cucumber-reports/gym-report-integration-cucumber.json")
 public class CucumberWorkloadIntegrationTest {
 }

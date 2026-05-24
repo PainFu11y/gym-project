@@ -66,6 +66,8 @@ dependencyManagement {
 tasks.test {
     useJUnitPlatform()
 
+    outputs.upToDateWhen { false }
+
     // Cucumber pretty-printed output
     testLogging {
         events 'passed', 'failed', 'skipped'
