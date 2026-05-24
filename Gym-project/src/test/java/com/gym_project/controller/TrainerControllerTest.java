@@ -53,7 +53,6 @@ class TrainerControllerTest {
         objectMapper.registerModule(new JavaTimeModule());
     }
 
-    // ------------------------------------------------------------------ create
 
     @Test
     void create_shouldReturn200_withUsernameAndPassword() throws Exception {
@@ -108,7 +107,6 @@ class TrainerControllerTest {
         verifyNoInteractions(trainerService);
     }
 
-    // --------------------------------------------------------------- getByUsername
 
     @Test
     void getByUsername_shouldReturn200_withTrainerDetails() throws Exception {
@@ -138,7 +136,6 @@ class TrainerControllerTest {
                 .andExpect(jsonPath("$.message").value("Trainer 'unknown' not found"));
     }
 
-    // ------------------------------------------------------------------ update
 
     @Test
     void update_shouldReturn200_whenRequestIsValid() throws Exception {
@@ -180,7 +177,6 @@ class TrainerControllerTest {
         verifyNoInteractions(trainerService);
     }
 
-    // --------------------------------------------------------------- getUnassignedActiveTrainers
 
     @Test
     void getUnassignedActiveTrainers_shouldReturn200_withList() throws Exception {
@@ -204,7 +200,6 @@ class TrainerControllerTest {
                 .andExpect(jsonPath("$.length()").value(0));
     }
 
-    // --------------------------------------------------------------- getTrainerTrainings (filter)
 
     @Test
     void getTrainerTrainings_shouldReturn200_withList() throws Exception {
@@ -231,7 +226,6 @@ class TrainerControllerTest {
                 .andExpect(jsonPath("$.length()").value(0));
     }
 
-    // --------------------------------------------------------------- toggleStatus
 
     @Test
     void toggleStatus_shouldReturn200() throws Exception {

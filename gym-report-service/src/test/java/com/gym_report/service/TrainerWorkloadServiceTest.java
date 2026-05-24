@@ -63,7 +63,6 @@ class TrainerWorkloadServiceTest {
                 .build();
     }
 
-    // ------------------------------------------------------------------ ADD — new trainer
 
     @Test
     void processWorkload_ADD_shouldCreateNewDocument_whenTrainerNotFound() {
@@ -144,7 +143,6 @@ class TrainerWorkloadServiceTest {
         assertThat(captor.getValue().isActive()).isFalse();
     }
 
-    // ------------------------------------------------------------------ DELETE
 
     @Test
     void processWorkload_DELETE_shouldSubtractMinutes() {
@@ -214,7 +212,6 @@ class TrainerWorkloadServiceTest {
         assertThat(captor.getValue().getYears().get(2025)).containsEntry(5, 90);
     }
 
-    // ------------------------------------------------------------------ repository interaction
 
     @Test
     void processWorkload_shouldCallFindByUsername_once() {
@@ -227,7 +224,6 @@ class TrainerWorkloadServiceTest {
         verify(repository, times(1)).save(any());
     }
 
-    // ------------------------------------------------------------------ getWorkload
 
     @Test
     void getWorkload_shouldReturnNull_whenTrainerNotFound() {
@@ -261,7 +257,6 @@ class TrainerWorkloadServiceTest {
         assertThat(result.isActive()).isFalse();
     }
 
-    // ------------------------------------------------------------------ getAllWorkloads
 
     @Test
     void getAllWorkloads_shouldReturnEmptyCollection_whenNoDocumentsExist() {

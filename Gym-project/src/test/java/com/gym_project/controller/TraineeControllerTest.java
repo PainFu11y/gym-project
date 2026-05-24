@@ -55,7 +55,6 @@ class TraineeControllerTest {
         objectMapper.registerModule(new JavaTimeModule());
     }
 
-    // ------------------------------------------------------------------ create
 
     @Test
     void create_shouldReturn200_withUsernameAndPassword() throws Exception {
@@ -107,7 +106,6 @@ class TraineeControllerTest {
         verifyNoInteractions(traineeService);
     }
 
-    // --------------------------------------------------------------- getByUsername
 
     @Test
     void getByUsername_shouldReturn200_withTraineeDetails() throws Exception {
@@ -137,7 +135,6 @@ class TraineeControllerTest {
                 .andExpect(jsonPath("$.message").value("Trainee 'unknown' not found"));
     }
 
-    // ------------------------------------------------------------------ update
 
     @Test
     void update_shouldReturn200_whenRequestIsValid() throws Exception {
@@ -185,7 +182,6 @@ class TraineeControllerTest {
         req.setUsername("Jane.Doe");
         req.setFirstName("Jane");
         req.setLastName("Doe");
-        // active not set -> null -> @NotNull violation
 
         mockMvc.perform(put("/api/trainees")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -195,7 +191,6 @@ class TraineeControllerTest {
         verifyNoInteractions(traineeService);
     }
 
-    // ------------------------------------------------------------------ delete
 
     @Test
     void delete_shouldReturn200_whenTraineeExists() throws Exception {
@@ -216,7 +211,6 @@ class TraineeControllerTest {
                 .andExpect(status().isNotFound());
     }
 
-    // --------------------------------------------------------------- updateTrainerList
 
     @Test
     void updateTrainerList_shouldReturn200_withUpdatedList() throws Exception {
@@ -251,7 +245,6 @@ class TraineeControllerTest {
         verifyNoInteractions(traineeService);
     }
 
-    // --------------------------------------------------------------- getTrainings (filter)
 
     @Test
     void getTrainings_shouldReturn200_withList() throws Exception {
@@ -281,7 +274,6 @@ class TraineeControllerTest {
         verifyNoInteractions(traineeService);
     }
 
-    // --------------------------------------------------------------- toggleStatus
 
     @Test
     void toggleStatus_shouldReturn200() throws Exception {
