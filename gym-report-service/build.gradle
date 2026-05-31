@@ -56,6 +56,10 @@ dependencyManagement {
     }
 }
 
+bootJar {
+    archiveFileName = 'app.jar'
+}
+
 tasks.test {
     useJUnitPlatform()
 }
