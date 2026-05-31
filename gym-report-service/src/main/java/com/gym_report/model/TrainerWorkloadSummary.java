@@ -18,17 +18,4 @@ public class TrainerWorkloadSummary {
     private boolean isActive;
 
     private Map<Integer, Map<Integer, Integer>> years = new HashMap<>();
-
-    public void addDuration(int year, int month, int duration) {
-        years.computeIfAbsent(year, y -> new HashMap<>())
-                .merge(month, duration, Integer::sum);
-    }
-
-    public void subtractDuration(int year, int month, int duration) {
-        Map<Integer, Integer> months = years.get(year);
-        if (months == null) return;
-        months.merge(month, -duration, Integer::sum);
-        months.entrySet().removeIf(e -> e.getValue() <= 0);
-        if (months.isEmpty()) years.remove(year);
-    }
 }

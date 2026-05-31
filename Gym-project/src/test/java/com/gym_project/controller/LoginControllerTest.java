@@ -48,7 +48,6 @@ class LoginControllerTest {
                 .build();
     }
 
-    // ------------------------------------------------------------------ login
 
     @Test
     void login_shouldReturn200WithToken_whenCredentialsAreValid() throws Exception {
@@ -96,7 +95,6 @@ class LoginControllerTest {
         verifyNoInteractions(loginService);
     }
 
-    // --------------------------------------------------------------- changePassword
 
     @Test
     void changePassword_shouldReturn200_whenOldPasswordIsCorrect() throws Exception {
@@ -123,7 +121,6 @@ class LoginControllerTest {
                 .andExpect(status().isUnauthorized());
     }
 
-    // ------------------------------------------------------------------ logout
 
     @Test
     void logout_shouldReturn200_andBlacklistToken_whenBearerTokenPresent() throws Exception {

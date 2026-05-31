@@ -56,7 +56,6 @@ class TrainingControllerTest {
         return dto;
     }
 
-    // ------------------------------------------------------------------ create
 
     @Test
     void create_shouldReturn200_whenRequestIsValid() throws Exception {
@@ -159,7 +158,6 @@ class TrainingControllerTest {
                 .andExpect(jsonPath("$.message").value("Trainer 'John.Smith' not found"));
     }
 
-    // ------------------------------------------------------------------ delete
 
     @Test
     void delete_shouldReturn200_whenTrainingExists() throws Exception {

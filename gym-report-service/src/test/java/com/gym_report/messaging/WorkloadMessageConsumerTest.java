@@ -44,7 +44,6 @@ class WorkloadMessageConsumerTest {
         );
     }
 
-    // ------------------------------------------------------------------ happy path
 
     @Test
     void consume_shouldCallProcessWorkload_forAddAction() {
@@ -108,7 +107,6 @@ class WorkloadMessageConsumerTest {
         assertThat(MDC.get("transactionId")).isNull();
     }
 
-    // ------------------------------------------------------------------ validation
 
     @Test
     void consume_shouldThrow_whenTrainerUsernameIsNull() {

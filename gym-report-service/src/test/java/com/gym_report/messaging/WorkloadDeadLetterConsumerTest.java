@@ -16,7 +16,6 @@ class WorkloadDeadLetterConsumerTest {
     @InjectMocks
     private WorkloadDeadLetterConsumer consumer;
 
-    // ------------------------------------------------------------------ TextMessage
 
     @Test
     void handleDeadLetter_shouldProcessTextMessage_withFailureCause() throws Exception {
@@ -29,7 +28,6 @@ class WorkloadDeadLetterConsumerTest {
         assertThatNoException().isThrownBy(() -> consumer.handleDeadLetter(message));
 
         verify(message).getText();
-        // getStringProperty is called twice: once for null-check, once for the value
         verify(message, times(2)).getStringProperty("dlqDeliveryFailureCause");
     }
 
@@ -51,7 +49,6 @@ class WorkloadDeadLetterConsumerTest {
 
         assertThatNoException().isThrownBy(() -> consumer.handleDeadLetter(message));
 
-        // getText() must NOT be called on a plain Message
         verify(message, never()).getStringProperty("fakeProperty");
     }
 
