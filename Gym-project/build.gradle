@@ -74,6 +74,8 @@ dependencies {
 
     // Tests
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    runtimeOnly 'com.h2database:h2'
+    runtimeOnly 'com.h2database:h2'
     testCompileOnly 'org.projectlombok:lombok'
     testAnnotationProcessor 'org.projectlombok:lombok'
     testAnnotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
